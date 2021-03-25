@@ -19,7 +19,7 @@ class Allocator {
     void reset();
 
  private:
-    std::unique_ptr<char> _mem = nullptr;
+    std::unique_ptr<char[]> _mem = nullptr;
     size_t _maxSize = 0u;
     char* _offset = nullptr;
 };

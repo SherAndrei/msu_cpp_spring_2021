@@ -5,7 +5,7 @@ Allocator::Allocator(size_t maxSize) {
 }
 
 void Allocator::makeAllocator(size_t maxSize) {
-    _mem =  std::make_unique<char>(maxSize);
+    _mem =  std::make_unique<char[]>(maxSize);
     _offset  = _mem.get();
     _maxSize = maxSize;
 }
