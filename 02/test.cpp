@@ -50,7 +50,7 @@ void TestInteger() {
         pr.run("123");
         ASSERT(is_number);
 
-        pr.run("0x1");
+        pr.run("0001");
         ASSERT(is_number);
     }
 }

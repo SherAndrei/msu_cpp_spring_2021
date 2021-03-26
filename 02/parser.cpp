@@ -33,7 +33,11 @@ void Parser::run(std::string_view sv) const {
         auto token = ReadToken(sv);
         auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
 
-        (errc != std::errc() || ptr != token.end()) ? _strCB(token) : _numCB(number);
+        if (errc == std::errc() && (*ptr == '\0' || std::isspace(*ptr))) {
+            _numCB(number);
+        } else if (!sv.empty()) {
+            _strCB(token);
+        }
     }
     _endCB();
 }
