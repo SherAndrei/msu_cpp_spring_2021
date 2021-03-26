@@ -1,16 +1,18 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef TOKEN_PARSER_H
+#define TOKEN_PARSER_H
 
 #include <string_view>
 #include <functional>
 
-class Parser {
+class TokenParser {
  public:
     using DefaultCallBack = std::function<void(void)>;
     using StringCallBack  = std::function<void(std::string_view)>;
     using NumberCallBack  = std::function<void(uint64_t)>;
 
  public:
+    TokenParser() = default;
+
     void set_start_callback(DefaultCallBack startCB);
     void set_number_callback(NumberCallBack numberCB);
     void set_string_callback(StringCallBack stringCB);
@@ -25,4 +27,4 @@ class Parser {
     DefaultCallBack _endCB   = []{};
 };
 
-#endif  // PARSER_H
+#endif  // TOKEN_PARSER_H

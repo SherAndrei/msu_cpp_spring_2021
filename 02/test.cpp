@@ -8,7 +8,7 @@ void TestUsage();
 
 void TestInteger() {
     {
-        Parser pr;
+        TokenParser pr;
         bool is_not_a_number = true;
 
         pr.set_number_callback([&] (uint64_t) {
@@ -23,7 +23,7 @@ void TestInteger() {
         }
     }
     {
-        Parser pr;
+        TokenParser pr;
         bool is_number = true;
 
         pr.set_string_callback([&](std::string_view) {
@@ -39,7 +39,7 @@ void TestInteger() {
 }
 
 void TestString() {
-    Parser pr;
+    TokenParser pr;
     std::string res;
     pr.set_string_callback([&](std::string_view sv){
         res += std::string(sv);
@@ -73,13 +73,13 @@ void TestString() {
 }
 
 void TestStartAndEnd() {
-    auto run_parser_4_times = [&] (const Parser& p) {
+    auto run_parser_4_times = [&] (const TokenParser& p) {
         for (auto& str : {"1", "2", "3", "4"}) {
             p.run(str);
         }
     };
     {
-        Parser pr;
+        TokenParser pr;
         size_t counter = 0u;
         pr.set_start_callback([&]{
             counter++;
@@ -91,7 +91,7 @@ void TestStartAndEnd() {
         ASSERT(counter == 8u);
     }
     {
-        Parser pr;
+        TokenParser pr;
         size_t counter = 0u;
         pr.set_start_callback([&]{
             counter++;
@@ -100,7 +100,7 @@ void TestStartAndEnd() {
         ASSERT(counter == 4u);
     }
     {
-        Parser pr;
+        TokenParser pr;
         size_t counter = 0u;
         pr.set_end_callback([&]{
             counter++;
@@ -111,7 +111,7 @@ void TestStartAndEnd() {
 }
 
 void TestUsage() {
-    Parser table_parser;
+    TokenParser table_parser;
     uint64_t sum;
     std::string result;
     table_parser.set_start_callback([&] {

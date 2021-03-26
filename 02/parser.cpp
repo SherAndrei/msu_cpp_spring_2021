@@ -2,10 +2,10 @@
 #include <cctype>
 #include "parser.h"
 
-void Parser::set_start_callback(DefaultCallBack startCB)  { _startCB = startCB;  }
-void Parser::set_number_callback(NumberCallBack numberCB) { _numCB   = numberCB; }
-void Parser::set_string_callback(StringCallBack stringCB) { _strCB   = stringCB; }
-void Parser::set_end_callback(DefaultCallBack endCB)      { _endCB   = endCB;    }
+void TokenParser::set_start_callback(DefaultCallBack startCB)  { _startCB = startCB;  }
+void TokenParser::set_number_callback(NumberCallBack numberCB) { _numCB   = numberCB; }
+void TokenParser::set_string_callback(StringCallBack stringCB) { _strCB   = stringCB; }
+void TokenParser::set_end_callback(DefaultCallBack endCB)      { _endCB   = endCB;    }
 
 namespace {
 
@@ -29,7 +29,7 @@ bool IsEndOfToken(char ch) {
 
 }  // namespace
 
-void Parser::run(std::string_view sv) const {
+void TokenParser::run(std::string_view sv) const {
     _startCB();
     uint64_t number;
 
