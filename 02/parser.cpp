@@ -23,20 +23,23 @@ std::string_view ReadToken(std::string_view& sv) {
     return result;
 }
 
+bool IsEndOfToken(char ch) {
+    return (ch == '\0' || std::isspace(ch));
+}
+
 }  // namespace
 
 void Parser::run(std::string_view sv) const {
     _startCB();
-    uint64_t number = -1;
+    uint64_t number;
 
     while (!sv.empty()) {
-        auto token = ReadToken(sv);
-        auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
-
-        if (errc == std::errc() && (*ptr == '\0' || std::isspace(*ptr))) {
-            _numCB(number);
-        } else if (!sv.empty()) {
-            _strCB(token);
+        if (auto token = ReadToken(sv);
+            !token.empty()) {
+            auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
+            (errc == std::errc() && IsEndOfToken(*ptr))
+                ? _numCB(number)
+                : _strCB(token);
         }
     }
     _endCB();
