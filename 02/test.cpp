@@ -14,23 +14,12 @@ void TestInteger() {
             is_not_a_number = false;
         });
 
-        pr.run("");
-        ASSERT(is_not_a_number);
-
-        pr.run("\n\t");
-        ASSERT(is_not_a_number);
-
-        pr.run("i am not a number\n");
-        ASSERT(is_not_a_number);
-
-        pr.run("a100");
-        ASSERT(is_not_a_number);
-
-        pr.run("100a");
-        ASSERT(is_not_a_number);
-
-        pr.run("10a0");
-        ASSERT(is_not_a_number);
+        for (auto& str : {"", "\n\t", "i am not a number\n",
+                          "a100", "100a", "10a0",
+                          "1e 2q\n4r\te23 \n\t2r5"}) {
+            pr.run(str);
+            ASSERT(is_not_a_number);
+        }
     }
     {
         Parser pr;
@@ -40,23 +29,46 @@ void TestInteger() {
             is_number = false;
         });
 
-        pr.run("\t1\t");
-        ASSERT(is_number);
-        pr.run(" 1 ");
-        ASSERT(is_number);
-        pr.run("\n1\n");
-        ASSERT(is_number);
-
-        pr.run("123");
-        ASSERT(is_number);
-
-        pr.run("0001");
-        ASSERT(is_number);
+        for (auto& str : {"\t1\t", " 1 ", "\n1\n", "123",
+                          "0001", "1 2\t3\n4 \t\n5 6"}) {
+            pr.run(str);
+            ASSERT(is_number);
+        }
     }
 }
 
 void TestString() {
+    Parser pr;
+    std::string res;
+    pr.set_string_callback([&](std::string_view sv){
+        res += std::string(sv);
+    });
 
+    for (auto& str : {"C++", "1979",
+                      "Java", "1995",
+                      "Python", "1991"}) {
+        pr.run(str);
+    }
+    ASSERT(res == "C++JavaPython");
+
+    res.clear();
+
+    for (auto& str : {"C++ 1979",
+                      "Java 1995",
+                      "Python 1991"}) {
+        pr.run(str);
+    }
+    ASSERT(res == "C++JavaPython");
+
+    res.clear();
+
+    for (auto& str : {"", " \t\n", "a 1 a,",
+                      "a a 1 ,",
+                      "1 a a,",
+                      "a1 1a\t1a1\na1a"}) {
+        pr.run(str);
+    }
+    ASSERT(res == "aa,aa,aa,a11a1a1a1a");
 }
 
 void TestMixed() {
