@@ -39,7 +39,7 @@ void TokenParser::run(std::string_view sv) const {
             auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
             (errc == std::errc() && IsEndOfToken(*ptr))
                 ? _numCB(number)
-                : _strCB(token);
+                : _strCB(std::string(token));
         }
     }
     _endCB();
