@@ -17,7 +17,7 @@ void TestInteger() {
 
         for (auto& str : {"", "\n\t", "i am not a number\n",
                           "a100", "100a", "10a0",
-                          "1e 2q\n4r\te23 \n\t2r5"}) {
+                          "1e 2q\n4r\te23 \n\t2r5", "18446744073709551620"}) {
             pr.run(str);
             ASSERT(is_not_a_number);
         }
@@ -26,7 +26,7 @@ void TestInteger() {
         TokenParser pr;
         bool is_number = true;
 
-        pr.set_string_callback([&](std::string_view) {
+        pr.set_string_callback([&](const std::string&) {
             is_number = false;
         });
 
@@ -41,8 +41,8 @@ void TestInteger() {
 void TestString() {
     TokenParser pr;
     std::string res;
-    pr.set_string_callback([&](std::string_view sv){
-        res += std::string(sv);
+    pr.set_string_callback([&](const std::string& s){
+        res += s;
     });
 
     for (auto& str : {"C++", "1979",
@@ -121,8 +121,8 @@ void TestUsage() {
     table_parser.set_number_callback([&] (uint64_t num) {
         sum += num;
     });
-    table_parser.set_string_callback([&] (std::string_view sv) {
-        result += std::string(sv) + '\n';
+    table_parser.set_string_callback([&] (const std::string& s) {
+        result += s + '\n';
     });
     table_parser.set_end_callback([&] {
         result += "Sum: " + std::to_string(sum) + '\n';
