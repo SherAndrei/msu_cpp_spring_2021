@@ -49,13 +49,15 @@ int32_t  Matrix::Proxy::operator[](size_t j) const {
     matrix.is_indices_valid(i, j);
     return matrix.data_[i * matrix.ncols_ + j];
 }
-
 int32_t& Matrix::Proxy::operator[](size_t j) {
     matrix.is_indices_valid(i, j);
     return matrix.data_[i * matrix.ncols_ + j];
 }
 
-Matrix::Proxy  Matrix::operator[](size_t i) const {
+const Matrix::Proxy  Matrix::operator[](size_t i) const {
+    return {*this, i};
+}
+Matrix::Proxy  Matrix::operator[](size_t i) {
     return {*this, i};
 }
 
@@ -69,7 +71,7 @@ int32_t  Matrix::at(size_t i, size_t j) const {
 }
 
 Matrix Matrix::operator+(const Matrix& other) const {
-    if (other.ncols_ != ncols_ || other.nrows_ != nrows_)
+    if (std::tie(ncols_, nrows_) != std::tie(other.ncols_, other.nrows_))
         throw std::logic_error("Different dimensions");
     Matrix res(nrows_, ncols_);
     for (size_t i = 0; i < nrows_ * ncols_; i++)
@@ -83,8 +85,8 @@ Matrix& Matrix::operator*=(int32_t alpha) {
 }
 
 bool Matrix::operator==(const Matrix& other) const {
-    return std::equal(data_.get(), data_.get() + size(),
-                      other.data_.get(), other.data_.get() + other.size());
+    return std::tie(ncols_, nrows_) == std::tie(other.ncols_, other.nrows_) &&
+           std::equal(data_.get(), data_.get() + size(), other.data_.get());
 }
 bool Matrix::operator!=(const Matrix& other) const {
     return !(*this == other);
@@ -103,7 +105,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix& matr) {
     for (size_t i = 0; i < matr.nrows(); ++i)
         for (size_t j = 0; j <  matr.ncols(); ++j)
             os << matr[i][j] << " \n"[j == matr.ncols() - 1];
-    return os << '\n';
+    return os;
 }
 
 std::istream& operator>>(std::istream& is, Matrix& m) {

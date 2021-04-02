@@ -23,20 +23,21 @@ class Matrix {
         int32_t& operator[](size_t j);
     };
 
-    Proxy  operator[](size_t i) const;
+    const Proxy operator[](size_t i) const;
+    Proxy operator[](size_t i);
 
-    int32_t& at(size_t i, size_t j);
     int32_t  at(size_t i, size_t j) const;
+    int32_t& at(size_t i, size_t j);
 
  public:
-    Matrix operator+(const Matrix& other) const;
+    Matrix  operator+(const Matrix& other) const;
     Matrix& operator*=(int32_t alpha);
 
     bool operator==(const Matrix& other) const;
     bool operator!=(const Matrix& other) const;
 
  public:
-    size_t size() const;
+    size_t size()  const;
     size_t nrows() const;
     size_t ncols() const;
 
