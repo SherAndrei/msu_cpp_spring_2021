@@ -2,10 +2,18 @@
 #include <cctype>
 #include "parser.h"
 
-void TokenParser::set_start_callback(DefaultCallBack startCB)  { _startCB = startCB;  }
-void TokenParser::set_number_callback(NumberCallBack numberCB) { _numCB   = numberCB; }
-void TokenParser::set_string_callback(StringCallBack stringCB) { _strCB   = stringCB; }
-void TokenParser::set_end_callback(DefaultCallBack endCB)      { _endCB   = endCB;    }
+void TokenParser::set_start_callback(DefaultCallBack startCB) {
+    if (startCB != nullptr) _startCB = startCB;
+}
+void TokenParser::set_number_callback(NumberCallBack numberCB) {
+    if (numberCB != nullptr) _numCB = numberCB;
+}
+void TokenParser::set_string_callback(StringCallBack stringCB) {
+    if (stringCB != nullptr) _strCB = stringCB;
+}
+void TokenParser::set_end_callback(DefaultCallBack endCB) {
+    if (endCB != nullptr) _endCB = endCB;
+}
 
 namespace {
 

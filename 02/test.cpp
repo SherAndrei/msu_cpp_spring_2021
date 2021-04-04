@@ -5,6 +5,7 @@ void TestInteger();
 void TestString();
 void TestStartAndEnd();
 void TestUsage();
+void TestNullptr();
 
 void TestInteger() {
     {
@@ -15,61 +16,81 @@ void TestInteger() {
             is_not_a_number = false;
         });
 
-        for (auto& str : {"", "\n\t", "i am not a number\n",
+        for (auto& str : {"", " ", "\n", "\t", " \n\t",
+                          "a", "i am not a number\n",
                           "a100", "100a", "10a0",
-                          "1e 2q\n4r\te23 \n\t2r5", "18446744073709551620"}) {
+                          "1e 2q\n4r\te23 \n\t2r5", "19000000000000000000"}) {
             pr.run(str);
             ASSERT(is_not_a_number);
         }
     }
     {
         TokenParser pr;
-        bool is_number = true;
+        uint64_t result = 0ul;
 
-        pr.set_string_callback([&](const std::string&) {
-            is_number = false;
+        pr.set_number_callback([&](uint64_t num) {
+            result = num;
         });
-
-        for (auto& str : {"\t1\t", " 1 ", "\n1\n", "123",
-                          "0001", "1 2\t3\n4 \t\n5 6"}) {
+        std::map<std::string, uint64_t> expected = {
+            {"1", 1},
+            {"\t1\t", 1},
+            {" 1 ", 1},
+            {"\n1\n", 1},
+            {"123", 123},
+            {"0001", 1},
+            {"18446744073709551615", ~0}
+        };
+        for (auto&& [str, res] : expected) {
             pr.run(str);
-            ASSERT(is_number);
+            ASSERT_EQUAL(result, res);
+            result = 0ul;
+        }
+    }
+    {
+        TokenParser tp;
+        std::vector<uint64_t> resv;
+        tp.set_number_callback([&](uint64_t num) {
+            resv.push_back(num);
+        });
+        std::map<std::string, std::vector<uint64_t>> expected = {
+            {"1", {1}},
+            {"\t1\t2", {1, 2}},
+            {" 1 3\n4\t5\n 3", {1, 3, 4, 5, 3}},
+            {"123 a 23 q 523", {123, 23, 523}},
+            {"qwewqe 10000 00ewq00 0001", {10000, 1}},
+            {"18446a744073 18446744073709551615 70955q1615 184467440737095516151", {~0ul}}
+        };
+        for (auto&& [str, res] : expected) {
+            tp.run(str);
+            ASSERT_EQUAL(resv, res);
+            resv.clear();
         }
     }
 }
 
 void TestString() {
     TokenParser pr;
-    std::string res;
+    std::vector<std::string> res;
     pr.set_string_callback([&](const std::string& s){
-        res += s;
+        res.push_back(s);
     });
 
-    for (auto& str : {"C++", "1979",
-                      "Java", "1995",
-                      "Python", "1991"}) {
+    std::map<std::string, std::vector<std::string>> expected = {
+        {"", {}},
+        {" ", {}},
+        {"\n", {}},
+        {"\t", {}},
+        {" \n\t", {}},
+        {"a 1 a,", {"a", "a,"}},
+        {"a a 1 ,", {"a", "a", ","}},
+        {"a1 1a\t1a1\na1a", {"a1", "1a", "1a1", "a1a"}}
+    };
+
+    for (auto&& [str, exp] : expected) {
         pr.run(str);
+        ASSERT_EQUAL(res, exp);
+        res.clear();
     }
-    ASSERT(res == "C++JavaPython");
-
-    res.clear();
-
-    for (auto& str : {"C++ 1979",
-                      "Java 1995",
-                      "Python 1991"}) {
-        pr.run(str);
-    }
-    ASSERT(res == "C++JavaPython");
-
-    res.clear();
-
-    for (auto& str : {"", " \t\n", "a 1 a,",
-                      "a a 1 ,",
-                      "1 a a,",
-                      "a1 1a\t1a1\na1a"}) {
-        pr.run(str);
-    }
-    ASSERT(res == "aa,aa,aa,a11a1a1a1a");
 }
 
 void TestStartAndEnd() {
@@ -136,8 +157,19 @@ void TestUsage() {
     ASSERT_EQUAL(result, "Groups:\nBD-11\nBD-21\nT-Lab-11\nBack-end-11\nGolang-11\nSum: 2000\n");
 }
 
+void TestNullptr() {
+    {
+        TokenParser tp;
+        tp.set_start_callback(nullptr);
+        tp.set_end_callback(nullptr);
+        tp.run("1");
+        ASSERT(true);
+    }
+}
+
 int main() {
     TestRunner tr;
+    RUN_TEST(tr, TestNullptr);
     RUN_TEST(tr, TestStartAndEnd);
     RUN_TEST(tr, TestInteger);
     RUN_TEST(tr, TestString);
