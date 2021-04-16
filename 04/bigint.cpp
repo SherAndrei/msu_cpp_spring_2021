@@ -41,13 +41,13 @@ void Parse(std::string_view sv, SimpleVector<Block>& data) {
 
 BigInt::BigInt(std::string_view sv) {
     if (sv[0] == '-') {
-        sign_ = true;
+        negative_ = true;
         sv.remove_prefix(1);
     }
     while (!sv.empty()) {
         size_t try_base = std::min(_BASE_NDIGITS_, sv.size());
-        Parse(sv.substr(0, try_base), data_);
-        sv.remove_prefix(try_base);
+        Parse(sv.substr(sv.size() - try_base), blocks_);
+        sv.remove_suffix(try_base);
     }
 }
 
@@ -58,10 +58,11 @@ BigInt& BigInt::operator=(std::string_view sv) {
 
 std::string BigInt::to_string() const {
     std::string res;
-    if (sign_)
+    if (negative_)
         res += '-';
-    for (size_t i = 0; i < data_.size(); i++) {
-        res += data_[i].to_string(i != 0 && i != data_.size() - 1);
+    for (size_t i = blocks_.size(); i != 0;) {
+        i--;
+        res += blocks_[i].to_string(i != blocks_.size() - 1);
     }
     return res;
 }

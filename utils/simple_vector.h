@@ -58,6 +58,11 @@ class SimpleVector {
     const T* begin() const { return _begin.get(); }
     const T* end()   const { return _begin.get() + _size; }
 
+    T& front() { return *_begin; }
+    T& back()  { return (_size == 0u) ? front() : *std::prev(end()); }
+    const T& front() const { return *_begin; }
+    const T& back()  const { return (_size == 0u) ? front() : *std::prev(end()); }
+
     size_t size()     const { return _size; }
     size_t capacity() const { return _capacity; }
 

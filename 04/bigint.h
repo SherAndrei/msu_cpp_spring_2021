@@ -42,23 +42,14 @@ class BigInt {
     constexpr BigInt operator+(Integral auto) const;
     constexpr BigInt operator-(Integral auto) const;
     constexpr BigInt operator*(Integral auto) const;
-    constexpr BigInt operator/(Integral auto) const;
-    constexpr BigInt operator%(Integral auto) const;
 
     constexpr BigInt& operator+=(Integral auto);
     constexpr BigInt& operator-=(Integral auto);
     constexpr BigInt& operator*=(Integral auto);
-    constexpr BigInt& operator/=(Integral auto);
-    constexpr BigInt& operator%=(Integral auto);
-
-    const BigInt& operator++();
-    const BigInt& operator--();
-    BigInt operator++(int);
-    BigInt operator--(int);
 
  private:
-    bool sign_ = false;
-    SimpleVector<Block> data_;
+    bool negative_ = false;
+    SimpleVector<Block> blocks_;
 };
 
 std::istream& operator>>(std::istream&, BigInt&);
