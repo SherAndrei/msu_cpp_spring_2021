@@ -13,14 +13,17 @@ PROJECT_NAME = bigint
 # all: test
 # 	./test
 
-test: test.o $(PROJECT_NAME).o
+test: test.o $(PROJECT_NAME).o block.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
 
 test.o: test.cpp $(PROJECT_NAME).o
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
 
-$(PROJECT_NAME).o: $(PROJECT_NAME).cpp $(PROJECT_NAME).h
+$(PROJECT_NAME).o: $(PROJECT_NAME).cpp $(PROJECT_NAME).h block.o
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
+
+block.o: block.cpp block.h
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 .PHONY: clean debug release
 

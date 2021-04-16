@@ -23,14 +23,14 @@ bool IsEndOfToken(char ch) {
     return (ch == '\0' || std::isdigit(ch));
 }
 
-void Parse(std::string_view sv, SimpleVector<uint64_t>& data) {
+void Parse(std::string_view sv, SimpleVector<Block>& data) {
     uint64_t number;
     while (!sv.empty()) {
         if (auto token = ReadToken(sv);
             !token.empty()) {
             auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
             (errc == std::errc() && IsEndOfToken(*ptr))
-                ? data.push_back(number)
+                ? data.push_back(Block{number})
                 : throw ParsingError("Cannot parse number: " + std::string(sv));
         }
     }
@@ -60,8 +60,9 @@ std::string BigInt::to_string() const {
     std::string res;
     if (sign_)
         res += '-';
-    for (size_t block : data_)
-        res += std::to_string(block);
+    for (size_t i = 0; i < data_.size(); i++) {
+        res += data_[i].to_string(i != 0 && i != data_.size() - 1);
+    }
     return res;
 }
 

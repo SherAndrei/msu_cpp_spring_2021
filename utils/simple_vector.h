@@ -1,3 +1,6 @@
+#ifndef SIMPLE_VECTOR_H
+#define SIMPLE_VECTOR_H
+
 #include <cstdint>
 #include <utility>
 #include <memory>
@@ -38,14 +41,15 @@ class SimpleVector {
     }
 
     SimpleVector& operator =(SimpleVector&& rhs) {
-        _capacity = std::exchange(rhs._capacity, 0ul);
         _size     = std::exchange(rhs._size, 0ul);
+        _capacity = std::exchange(rhs._capacity, 0ul);
         _begin    = std::exchange(rhs._begin, nullptr);
         return *this;
     }
 
     ~SimpleVector() = default;
 
+    const T& operator[](size_t index) const { return _begin[index]; }
     T& operator[](size_t index) { return _begin[index]; }
 
     T* begin() { return _begin.get(); }
@@ -75,7 +79,9 @@ class SimpleVector {
     }
 
  private:
-    std::unique_ptr<T[]> _begin;
     size_t _size     = 0ul;
     size_t _capacity = 0ul;
+    std::unique_ptr<T[]> _begin = nullptr;
 };
+
+#endif  // SIMPLE_VECTOR_H

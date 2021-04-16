@@ -8,20 +8,12 @@
 #include <memory>
 
 #include "simple_vector.h"
+#include "block.h"
 
 class BigInt;
 
 template <class T>
 concept Integral = std::is_integral_v<T> || std::is_same_v<T, const BigInt&>;
-
-constexpr uint64_t _BASE_ = 10'000'000;
-constexpr uint64_t _BASE_NDIGITS_ = 8;
-
-// TODO
-class Block {
- private:
-    size_t number;
-};
 
 
 class BigInt {
@@ -66,7 +58,7 @@ class BigInt {
 
  private:
     bool sign_ = false;
-    SimpleVector<uint64_t> data_;
+    SimpleVector<Block> data_;
 };
 
 std::istream& operator>>(std::istream&, BigInt&);
