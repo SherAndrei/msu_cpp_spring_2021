@@ -15,6 +15,7 @@ void TestPushBack();
 void TestNoCopy();
 
 void TestIOstream();
+void TestStringConstructor();
 void TestIntegerConctructor();
 
 void TestConstruction() {
@@ -66,24 +67,35 @@ void TestNoCopy() {
     }
 }
 
+namespace {
 
-void TestIOstream() {
-    std::vector<std::string> expected = {
+constexpr std::array<std::string_view, 13> testStrArr = {
         "0", "-1", "1",
         "-32768", "32767", "65535",
         "-9223372036854775808", "9223372036854775807", "18446744073709551615",
         "92233720368547758081844674407370955161518446744073709551615",
         "-184467440737095516151844674407370955161518446744073709551615",
         "10000000000000000000000000000000000000",
-        "-10000000000000000000000000000000000000",
+        "-10000000000000000000000000000000000000"
     };
-    for (auto&& str : expected) {
-        std::istringstream is(str);
+
+}  // namespace
+
+void TestIOstream() {
+    for (auto&& str : testStrArr) {
+        std::string strn = std::string(str);
+        std::istringstream is(strn);
         BigInt bint;
         is >> bint;
         ASSERT_EQUAL(bint.to_string(), str);
+        std::ostringstream os;
+        os << bint;
+        ASSERT_EQUAL(bint.to_string(), os.str());
     }
-    for (auto&& str : expected) {
+}
+
+void TestStringConstructor() {
+    for (auto&& str : testStrArr) {
         std::ostringstream os;
         BigInt bint(str);
         os << bint;
@@ -127,6 +139,7 @@ int main() {
     {
         std::cerr << "BIGINT TESTS:\n";
         RUN_TEST(tr, TestIOstream);
+        RUN_TEST(tr, TestStringConstructor);
         RUN_TEST(tr, TestIntegerConctructor);
         std::cerr << "====================\n";
     }
