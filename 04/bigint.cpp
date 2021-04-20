@@ -60,10 +60,12 @@ std::string BigInt::to_string() const {
     std::string res;
     if (negative_)
         res += '-';
-    for (size_t i = blocks_.size(); i != 0;) {
-        i--;
-        res += blocks_[i].to_string(i != blocks_.size() - 1);
-    }
+    bool add_zeros = false;
+    std::for_each(blocks_.rbegin(), blocks_.rend(), [&] (Block bl) {
+        res += bl.to_string(add_zeros);
+        add_zeros = true;
+    });
+
     return res;
 }
 

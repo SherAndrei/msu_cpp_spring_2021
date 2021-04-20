@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <utility>
 #include <memory>
+#include <iterator>
 #include <algorithm>
 
 template <typename T>
@@ -52,11 +53,15 @@ class SimpleVector {
     const T& operator[](size_t index) const { return _begin[index]; }
     T& operator[](size_t index) { return _begin[index]; }
 
-    T* begin() { return _begin.get(); }
-    T* end()   { return _begin.get() + _size; }
+    auto begin() { return _begin.get(); }
+    auto end()   { return _begin.get() + _size; }
+    const auto begin() const { return _begin.get(); }
+    const auto end()   const { return _begin.get() + _size; }
 
-    const T* begin() const { return _begin.get(); }
-    const T* end()   const { return _begin.get() + _size; }
+    auto rbegin() { return std::make_reverse_iterator(end()); }
+    auto rend()   { return std::make_reverse_iterator(begin()); }
+    const auto rbegin() const { return std::make_reverse_iterator(end()); }
+    const auto rend()   const { return std::make_reverse_iterator(begin()); }
 
     T& front() { return *_begin; }
     T& back()  { return (_size == 0u) ? front() : *std::prev(end()); }
