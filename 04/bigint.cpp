@@ -3,6 +3,7 @@
 #include <utility>
 #include <algorithm>
 #include <charconv>
+#include <ranges>
 
 #include "bigint.h"
 #include "biginterr.h"
@@ -59,11 +60,13 @@ BigInt& BigInt::operator=(std::string_view sv) {
     return *this = BigInt(sv);
 }
 
+namespace rng = std::ranges;
+
 std::string BigInt::to_string() const {
     std::string res;
     if (negative_) res += '-';
     bool add_zeros = false;
-    std::for_each(blocks_.rbegin(), blocks_.rend(), [&] (Block bl) {
+    rng::for_each(rng::reverse_view(blocks_), [&] (Block bl) {
         res += bl.to_string(add_zeros);
         add_zeros = true;
     });
@@ -89,10 +92,15 @@ std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
 
 bool BigInt::operator < (const BigInt& rhs) const {
     return (rhs.negative_ <= negative_ &&
-            std::lexicographical_compare(blocks_.rbegin(), blocks_.rend(),
-                rhs.blocks_.rbegin(), rhs.blocks_.rend(), [this] (Block lhs, Block rhs) {
+            rng::lexicographical_compare(rng::reverse_view(blocks_),
+                rng::reverse_view(rhs.blocks_), [this] (Block lhs, Block rhs) {
                     return (lhs.number < rhs.number) ^ negative_;
                 }));
+}
+
+bool BigInt::operator == (const BigInt& rhs) const {
+    return (rhs.negative_ == negative_ &&
+            rng::equal(blocks_, rhs.blocks_));
 }
 
 // constexpr BigInt BigInt::operator+(const BigInt&) const {

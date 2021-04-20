@@ -78,23 +78,25 @@ void TestIntegerConctructor() {
 }
 
 void TestBigIntComparison() {
-    ASSERT_EQUAL(BigInt("42"), BigInt("42"));
+    using ll_lim  = std::numeric_limits<long long>;
+    using llu_lim = std::numeric_limits<long long unsigned>;
+    ASSERT_EQUAL(BigInt("42"), 42);
+    ASSERT_EQUAL(42, BigInt("42"));
+    ASSERT_EQUAL(BigInt("-42"), -42);
+    ASSERT_EQUAL(-42, BigInt("-42"));
     ASSERT_EQUAL(BigInt("0"), BigInt("-0"));
     ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000000000000000000001"), BigInt("1"));
-    ASSERT_EQUAL(BigInt("0123456789123456789"), BigInt("123456789123456789"));
-    ASSERT_EQUAL(BigInt("00042"), BigInt(42));
+    ASSERT_EQUAL(BigInt(llu_lim::max()),
+                 BigInt(std::to_string(llu_lim::max())));
 
     ASSERT(BigInt("98936913561937591991369175") != BigInt("-98936913561937591991369175"));
-    ASSERT(BigInt("111111111111111111") != BigInt("111111"));
+    ASSERT(BigInt("100000000000000") < BigInt("1000000000000000"));
 
-    ASSERT(BigInt(2)  < BigInt(3));
-    ASSERT(BigInt(-1) < BigInt(1));
-    ASSERT(BigInt(-3) < BigInt(-2));
-    ASSERT(BigInt("-11111111") < BigInt(111));
-    ASSERT(BigInt("123123123123123123") < BigInt("456456456456456456"));
-    ASSERT(BigInt(std::numeric_limits<long long>::max()) < BigInt("11111111111111111111111111111111"));
-    ASSERT(BigInt("-11111111111111111111111111111111") < BigInt(std::numeric_limits<long long>::min()));
-    ASSERT(BigInt(42) < BigInt(43));
+    ASSERT(BigInt(2)  < 3);
+    ASSERT(BigInt(-1) < 1);
+    ASSERT(BigInt(-3) < -2);
+    ASSERT(BigInt(llu_lim::max()) < BigInt("11111111111111111111111111111111"));
+    ASSERT(BigInt("-11111111111111111111111111111111") < ll_lim::min());
 }
 
 int main() {
