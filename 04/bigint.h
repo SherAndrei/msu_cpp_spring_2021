@@ -46,9 +46,8 @@ class BigInt {
     constexpr BigInt operator-(IntOrBigInt auto) const;
     constexpr BigInt operator*(IntOrBigInt auto) const;
 
-    constexpr BigInt& operator+=(IntOrBigInt auto);
-    constexpr BigInt& operator-=(IntOrBigInt auto);
-    constexpr BigInt& operator*=(IntOrBigInt auto);
+ private:
+    void remove_leading_zeros();
 
  private:
     bool negative_ = false;

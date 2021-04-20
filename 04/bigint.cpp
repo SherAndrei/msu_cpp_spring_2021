@@ -49,6 +49,7 @@ BigInt::BigInt(std::string_view sv) {
         Parse(sv.substr(sv.size() - try_base), blocks_);
         sv.remove_suffix(try_base);
     }
+    remove_leading_zeros();
 }
 
 BigInt& BigInt::operator=(std::string_view sv) {
@@ -65,6 +66,11 @@ std::string BigInt::to_string() const {
     });
 
     return res;
+}
+
+void BigInt::remove_leading_zeros() {
+    while (blocks_.size() > 1 && blocks_.back().number == 0)
+        blocks_.pop_back();
 }
 
 std::istream& operator>>(std::istream& is, BigInt& bnum) {

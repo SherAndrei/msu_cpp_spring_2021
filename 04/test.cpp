@@ -119,6 +119,10 @@ void TestStringConstructor() {
         os << bint;
         ASSERT_EQUAL(bint.to_string(), os.str());
     }
+
+    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000000").to_string(), "0");
+    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000001").to_string(), "1");
+    ASSERT_EQUAL(BigInt("-0000000000000000000000000000000000000000000001").to_string(), "-1");
 }
 
 void TestIntegerConctructor() {
