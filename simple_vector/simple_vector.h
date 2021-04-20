@@ -64,7 +64,7 @@ class SimpleVector {
     const auto rbegin() const { return std::make_reverse_iterator(end()); }
     const auto rend()   const { return std::make_reverse_iterator(begin()); }
 
-    T& front() { return *_begin; }
+    T& front() { return *begin(); }
     T& back()  { return (_size == 0u) ? front() : *std::prev(end()); }
     const T& front() const { return *_begin; }
     const T& back()  const { return (_size == 0u) ? front() : *std::prev(end()); }
@@ -98,6 +98,12 @@ class SimpleVector {
     void push_back(T value) {
         expand_if_needed();
         _begin[_size++] = std::move(value);
+    }
+
+    void pop_back() {
+        if (_size == 0ul)
+            return;
+        _size--;
     }
 
  private:
