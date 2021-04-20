@@ -22,12 +22,6 @@ class SimpleVector {
             std::copy(other.begin(), other.end(), _begin);
     }
 
-    SimpleVector(SimpleVector&& other)
-        : _size(other._size), _capacity(other._capacity)
-        , _begin(std::move(other._begin)) {
-            other._capacity = other._size = 0u;
-    }
-
     SimpleVector& operator =(const SimpleVector& rhs) {
         if (rhs._size <= _capacity) {
             std::copy(rhs.begin(), rhs.end(), begin());
@@ -41,6 +35,12 @@ class SimpleVector {
         return *this;
     }
 
+    SimpleVector(SimpleVector&& other)
+        : _size(other._size), _capacity(other._capacity)
+        , _begin(std::move(other._begin)) {
+            other._capacity = other._size = 0u;
+    }
+
     SimpleVector& operator =(SimpleVector&& rhs) {
         _size     = std::exchange(rhs._size, 0ul);
         _capacity = std::exchange(rhs._capacity, 0ul);
@@ -50,8 +50,9 @@ class SimpleVector {
 
     ~SimpleVector() = default;
 
-    const T& operator[](size_t index) const { return _begin[index]; }
+ public:
     T& operator[](size_t index) { return _begin[index]; }
+    const T& operator[](size_t index) const { return _begin[index]; }
 
     auto begin() { return _begin.get(); }
     auto end()   { return _begin.get() + _size; }
@@ -70,6 +71,17 @@ class SimpleVector {
 
     size_t size()     const { return _size; }
     size_t capacity() const { return _capacity; }
+
+ public:
+    bool operator==(const SimpleVector& other) const {
+        return (size() == other.size() &&
+                std::equal(begin(), end(), other.begin()));
+    }
+
+    auto operator<=>(const SimpleVector& other) const {
+        return std::lexicographical_compare_three_way(begin(), end(),
+                    other.begin(), other.end());
+    }
 
  private:
     void expand_if_needed() {

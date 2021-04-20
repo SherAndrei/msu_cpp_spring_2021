@@ -13,6 +13,7 @@
 void TestConstruction();
 void TestPushBack();
 void TestNoCopy();
+void TestComparison();
 
 void TestIOstream();
 void TestStringConstructor();
@@ -65,6 +66,23 @@ void TestNoCopy() {
     for (int i = 0; i < size; ++i) {
         ASSERT_EQUAL(strings[i], std::to_string(i));
     }
+}
+
+void TestComparison() {
+    auto to_svector = [](const std::vector<int>& v) {
+        SimpleVector<int> svec(v.size());
+        std::for_each(v.begin(), v.end(), [&] (int num) {
+            svec.push_back(num);
+        });
+        return svec;
+    };
+
+    ASSERT(to_svector({}) == to_svector({}));
+    ASSERT(to_svector({0, 1, 2}) == to_svector({0, 1, 2}));
+    ASSERT(to_svector({0, 1, 2}) <= to_svector({0, 1, 2}));
+    ASSERT(to_svector({0, 1, 2}) >= to_svector({0, 1, 2}));
+    ASSERT(to_svector({2, 1}) > to_svector({0, 1, 2}));
+    ASSERT(to_svector({0, 1, 2}) < to_svector({2, 1}));
 }
 
 namespace {
@@ -134,6 +152,7 @@ int main() {
         RUN_TEST(tr, TestConstruction);
         RUN_TEST(tr, TestPushBack);
         RUN_TEST(tr, TestNoCopy);
+        RUN_TEST(tr, TestComparison);
         std::cerr << "====================\n";
     }
     {
