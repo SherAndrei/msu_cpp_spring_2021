@@ -8,6 +8,7 @@ CFLAGS :=  -std=c++20 -W  -Wall      -Werror         -pedantic \
 LDFLAGS := -fsanitize=address
 
 UTILS_DIR = ./../utils/
+SVECTOR_DIR = ./../simple_vector/
 PROJECT_NAME = bigint
 
 # all: test
@@ -17,10 +18,10 @@ test: test.o $(PROJECT_NAME).o block.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
 
 test.o: test.cpp $(PROJECT_NAME).o
-	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
+	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR) -I$(SVECTOR_DIR)
 
 $(PROJECT_NAME).o: $(PROJECT_NAME).cpp $(PROJECT_NAME).h block.o
-	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
+	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR) -I$(SVECTOR_DIR)
 
 block.o: block.cpp block.h
 	$(CC) -c $< -o $@ $(CFLAGS)

@@ -49,6 +49,9 @@ BigInt::BigInt(std::string_view sv) {
         Parse(sv.substr(sv.size() - try_base), blocks_);
         sv.remove_suffix(try_base);
     }
+    if (negative_ && blocks_.size() == 1 && blocks_[0].number == 0)
+        negative_ = false;
+
     remove_leading_zeros();
 }
 
@@ -83,3 +86,30 @@ std::istream& operator>>(std::istream& is, BigInt& bnum) {
 std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
     return os << bnum.to_string();
 }
+
+bool BigInt::operator < (const BigInt& rhs) const {
+    return (rhs.negative_ <= negative_ &&
+            std::lexicographical_compare(blocks_.rbegin(), blocks_.rend(),
+                rhs.blocks_.rbegin(), rhs.blocks_.rend(), [this] (Block lhs, Block rhs) {
+                    return (lhs.number < rhs.number) ^ negative_;
+                }));
+}
+
+// constexpr BigInt BigInt::operator+(const BigInt&) const {
+//     return *this;
+// }
+// constexpr BigInt BigInt::operator-(const BigInt&) const {
+//     return *this;
+// }
+// constexpr BigInt BigInt::operator*(const BigInt&) const {
+//     return *this;
+// }
+// constexpr BigInt& BigInt::operator+=(const BigInt&) {
+//     return *this;
+// }
+// constexpr BigInt& BigInt::operator-=(const BigInt&) {
+//     return *this;
+// }
+// constexpr BigInt& BigInt::operator*=(const BigInt&) {
+//     return *this;
+// }

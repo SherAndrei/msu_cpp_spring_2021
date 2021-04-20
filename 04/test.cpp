@@ -10,9 +10,11 @@
 #include "biginterr.h"
 
 void TestIOstream();
+void TestBigIntComparison();
 void TestStringConstructor();
 void TestIntegerConctructor();
 
+namespace {
 
 constexpr std::array<std::string_view, 13> testStrArr = {
         "0", "-1", "1",
@@ -75,10 +77,30 @@ void TestIntegerConctructor() {
     do_assert(std::numeric_limits<unsigned long long>::max());
 }
 
+void TestBigIntComparison() {
+    ASSERT_EQUAL(BigInt("42"), BigInt("42"));
+    ASSERT_EQUAL(BigInt("0"), BigInt("-0"));
+    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000000000000000000001"), BigInt("1"));
+    ASSERT_EQUAL(BigInt("0123456789123456789"), BigInt("123456789123456789"));
+    ASSERT_EQUAL(BigInt("00042"), BigInt(42));
+
+    ASSERT(BigInt("98936913561937591991369175") != BigInt("-98936913561937591991369175"));
+    ASSERT(BigInt("111111111111111111") != BigInt("111111"));
+
+    ASSERT(BigInt(2)  < BigInt(3));
+    ASSERT(BigInt(-1) < BigInt(1));
+    ASSERT(BigInt(-3) < BigInt(-2));
+    ASSERT(BigInt("-11111111") < BigInt(111));
+    ASSERT(BigInt("123123123123123123") < BigInt("456456456456456456"));
+    ASSERT(BigInt(std::numeric_limits<long long>::max()) < BigInt("11111111111111111111111111111111"));
+    ASSERT(BigInt("-11111111111111111111111111111111") < BigInt(std::numeric_limits<long long>::min()));
+    ASSERT(BigInt(42) < BigInt(43));
+}
 
 int main() {
     TestRunner tr;
     RUN_TEST(tr, TestIOstream);
     RUN_TEST(tr, TestStringConstructor);
     RUN_TEST(tr, TestIntegerConctructor);
+    RUN_TEST(tr, TestBigIntComparison);
 }

@@ -10,6 +10,7 @@ constexpr size_t _BASE_NDIGITS_ = 9;
 struct Block {
     block_type number;
 
+    auto operator<=>(const Block&) const = default;
     std::string to_string(bool add_zeros = false) const;
 };
 

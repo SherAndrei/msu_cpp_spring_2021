@@ -10,14 +10,9 @@
 #include "simple_vector.h"
 #include "block.h"
 
-class BigInt;
-
-template <class T>
-concept IntOrBigInt = std::is_integral_v<T> || std::is_same_v<T, const BigInt&>;
 
 template <class T>
 concept Integral = std::is_integral_v<T>;
-
 
 class BigInt {
  public:
@@ -40,7 +35,12 @@ class BigInt {
     std::string to_string() const;
 
  public:
-    constexpr auto operator<=>(IntOrBigInt auto) const;
+    bool operator < (const BigInt&) const;
+    auto operator<=>(const BigInt&) const = default;
+
+ public:
+    constexpr auto operator<=>(Integral auto) const;
+
 
     constexpr BigInt operator+(IntOrBigInt auto) const;
     constexpr BigInt operator-(IntOrBigInt auto) const;
