@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <limits>
 
 #include "test_runner.h"
 #include "simple_vector.h"
@@ -14,6 +15,7 @@ void TestPushBack();
 void TestNoCopy();
 
 void TestIOstream();
+void TestIntegerConctructor();
 
 void TestConstruction() {
     SimpleVector<int> empty;
@@ -89,15 +91,43 @@ void TestIOstream() {
     }
 }
 
+void TestIntegerConctructor() {
+    auto do_assert = [](Integral auto number) {
+        ASSERT_EQUAL(BigInt(number).to_string(), std::to_string(number));
+    };
+
+    for (int number : {0, -1, 1,
+                       -1'000'000'000,
+                        1'000'000'000,
+                       std::numeric_limits<int>::min(),
+                       std::numeric_limits<int>::max()})
+        do_assert(number);
+
+    do_assert(4294967295u);
+
+    for (long long number : {1'000'000'000'000'000'000ll,
+                            -1'000'000'000'000'000'000ll,
+                            std::numeric_limits<long long>::min(),
+                            std::numeric_limits<long long>::max()})
+        do_assert(number);
+
+    do_assert(std::numeric_limits<unsigned long long>::max());
+}
+
+
 int main() {
     TestRunner tr;
     {
-        // vector
+        std::cerr << "SIMPLE VECTOR TESTS:\n";
         RUN_TEST(tr, TestConstruction);
         RUN_TEST(tr, TestPushBack);
         RUN_TEST(tr, TestNoCopy);
+        std::cerr << "====================\n";
     }
-    {   // bigint
+    {
+        std::cerr << "BIGINT TESTS:\n";
         RUN_TEST(tr, TestIOstream);
+        RUN_TEST(tr, TestIntegerConctructor);
+        std::cerr << "====================\n";
     }
 }

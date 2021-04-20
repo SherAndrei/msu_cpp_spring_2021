@@ -52,14 +52,12 @@ BigInt::BigInt(std::string_view sv) {
 }
 
 BigInt& BigInt::operator=(std::string_view sv) {
-    (void) sv;
-    return *this;
+    return *this = BigInt(sv);
 }
 
 std::string BigInt::to_string() const {
     std::string res;
-    if (negative_)
-        res += '-';
+    if (negative_) res += '-';
     bool add_zeros = false;
     std::for_each(blocks_.rbegin(), blocks_.rend(), [&] (Block bl) {
         res += bl.to_string(add_zeros);
@@ -75,6 +73,7 @@ std::istream& operator>>(std::istream& is, BigInt& bnum) {
     bnum = BigInt(snum);
     return is;
 }
+
 std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
     return os << bnum.to_string();
 }
