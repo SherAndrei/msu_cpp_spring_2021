@@ -50,7 +50,7 @@ BigInt::BigInt(std::string_view sv) {
         Parse(sv.substr(sv.size() - try_base), blocks_);
         sv.remove_suffix(try_base);
     }
-    if (negative_ && blocks_.size() == 1 && blocks_[0].number == 0)
+    if (is_zero())
         negative_ = false;
 
     remove_leading_zeros();
@@ -77,6 +77,10 @@ std::string BigInt::to_string() const {
 void BigInt::remove_leading_zeros() {
     while (blocks_.size() > 1 && blocks_.back().number == 0)
         blocks_.pop_back();
+}
+
+bool BigInt::is_zero() const {
+    return negative_ && blocks_.size() == 1 && blocks_[0].number == 0;
 }
 
 std::istream& operator>>(std::istream& is, BigInt& bnum) {
@@ -106,7 +110,7 @@ bool BigInt::operator == (const BigInt& rhs) const {
 BigInt BigInt::operator-() const {
     BigInt res{*this};
     res.negative_ ^= true;
-    if (res.negative_ && blocks_.size() == 1 && blocks_[0].number == 0)
+    if (res.is_zero())
         res.negative_ = false;
     return res;
 }
@@ -128,14 +132,12 @@ BigInt BigInt::operator+(const BigInt& rhs) const {
     };
 
     auto [min, max] = std::minmax(blocks_.size(), rhs.blocks_.size());
-    for (size_t i = 0; i < min; i++) {
+    for (size_t i = 0; i < min; i++)
         Sum.blocks_.push_back(add_block(blocks_[i].number, rhs.blocks_[i].number));
-    }
 
     auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
-    for (size_t i = min; i < max; i++) {
+    for (size_t i = min; i < max; i++)
         Sum.blocks_.push_back(add_block(max_cont[i].number, 0));
-    }
 
     Sum.blocks_.push_back(Block(carry));
     Sum.remove_leading_zeros();
@@ -167,13 +169,13 @@ BigInt BigInt::operator-(const BigInt& rhs) const {
         } else {
             lhs -= debt;
             debt = 0;
-}
+        }
         return Block(lhs - rhs);
     };
 
     for (size_t i = 0; i < subtracted.blocks_.size(); ++i)
-        Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number,
-                                         subtracted.blocks_[i].number);
+        Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number, subtracted.blocks_[i].number);
+
     for (size_t i = subtracted.blocks_.size(); i < reduced.blocks_.size(); ++i)
         Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number, 0);
 
@@ -181,8 +183,25 @@ BigInt BigInt::operator-(const BigInt& rhs) const {
     return Diff;
 }
 
-BigInt BigInt::operator*(const BigInt&) const {
-    return *this;
+BigInt BigInt::operator*(const BigInt& rhs) const {
+    BigInt Prod;
+    Prod.negative_ = negative_ ^ rhs.negative_;
+    Prod.blocks_ = SimpleVector<Block>(blocks_.size() + rhs.blocks_.size());
+
+    for (size_t i = 0; i < blocks_.size(); ++i) {
+        block_type carry = 0;
+        for (size_t j = 0; j < rhs.blocks_.size(); ++j) {
+            uint64_t prod_item = blocks_[i].number * rhs.blocks_[j].number
+                               + Prod.blocks_[i + j].number + carry;
+            Prod.blocks_[i + j].number = prod_item % _BASE_;
+            carry = prod_item / _BASE_;
+        }
+        Prod.blocks_[i + rhs.blocks_.size()].number += carry;
+    }
+    Prod.remove_leading_zeros();
+    if (Prod.is_zero())
+        Prod.negative_ = false;
+    return Prod;
 }
 
 BigInt& BigInt::operator+=(const BigInt& other) { return *this = *this + other; }

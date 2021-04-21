@@ -16,6 +16,7 @@ void TestIntegerConctructor();
 void TestUnary();
 void TestSum();
 void TestSub();
+void TestMult();
 
 namespace {
 
@@ -146,6 +147,21 @@ void TestSub() {
                  BigInt("-100000000000000000000000000000000000000000"));
 }
 
+void TestMult() {
+    ASSERT_EQUAL(BigInt(1) * 0, 0);
+    ASSERT_EQUAL(BigInt(-1) * 0, BigInt(0));
+    ASSERT_EQUAL(BigInt(1) * BigInt(1), 1);
+    ASSERT_EQUAL(BigInt(2) * BigInt(2), BigInt(4));
+    ASSERT_EQUAL(BigInt(-2) * BigInt(2), -4);
+    ASSERT_EQUAL(BigInt(-2) * -2, 4);
+
+    ASSERT_EQUAL(BigInt(ll_lim::max()) * 2 + 1, BigInt(llu_lim::max()));
+    ASSERT_EQUAL(BigInt(llu_lim::max()) - BigInt(ll_lim::max()) * 2, 1);
+
+    ASSERT_EQUAL(BigInt("10000000000000000000000000000") * 0, 0);
+    ASSERT_EQUAL(BigInt("00000000000000000000000000001") * (-1), -1);
+}
+
 int main() {
     TestRunner tr;
     RUN_TEST(tr, TestIOstream);
@@ -155,4 +171,5 @@ int main() {
     RUN_TEST(tr, TestUnary);
     RUN_TEST(tr, TestSum);
     RUN_TEST(tr, TestSub);
+    RUN_TEST(tr, TestMult);
 }

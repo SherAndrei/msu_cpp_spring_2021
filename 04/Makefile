@@ -11,8 +11,8 @@ UTILS_DIR = ./../utils/
 SVECTOR_DIR = ./../simple_vector/
 PROJECT_NAME = bigint
 
-# all: test
-# 	./test
+all: test
+	./test
 
 test: test.o $(PROJECT_NAME).o block.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)

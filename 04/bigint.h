@@ -63,6 +63,7 @@ class BigInt {
 
  private:
     void remove_leading_zeros();
+    bool is_zero() const;
 
  private:
     bool negative_ = false;
