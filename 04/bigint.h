@@ -12,7 +12,7 @@
 
 
 template <class T>
-concept Integral = std::is_integral_v<T>;
+concept Integral = std::is_integral<T>::value;
 
 class BigInt {
  public:
@@ -54,16 +54,20 @@ class BigInt {
     bool operator ==(Integral auto) const;
     auto operator<=>(Integral auto) const;
 
+    BigInt operator+(Integral auto) const;
+    BigInt operator-(Integral auto) const;
+    BigInt operator*(Integral auto) const;
 
-    constexpr BigInt operator+(IntOrBigInt auto) const;
-    constexpr BigInt operator-(IntOrBigInt auto) const;
-    constexpr BigInt operator*(IntOrBigInt auto) const;
+    BigInt& operator+=(Integral auto);
+    BigInt& operator-=(Integral auto);
+    BigInt& operator*=(Integral auto);
 
  private:
     void remove_leading_zeros();
 
  private:
     bool negative_ = false;
+
     SimpleVector<Block> blocks_;
 };
 
@@ -78,8 +82,16 @@ BigInt& BigInt::operator=(Integral auto num) {
     return *this = BigInt(std::to_string(num));
 }
 
-bool BigInt::operator  <(Integral auto num) const { return *this < BigInt(num);   }
-bool BigInt::operator ==(Integral auto num) const { return *this == BigInt(num);  }
+bool BigInt::operator  <(Integral auto num) const { return *this   < BigInt(num); }
+bool BigInt::operator ==(Integral auto num) const { return *this  == BigInt(num); }
 auto BigInt::operator<=>(Integral auto num) const { return *this <=> BigInt(num); }
+
+BigInt BigInt::operator+(Integral auto num) const { return *this + BigInt(num); }
+BigInt BigInt::operator-(Integral auto num) const { return *this - BigInt(num); }
+BigInt BigInt::operator*(Integral auto num) const { return *this * BigInt(num); }
+
+BigInt& BigInt::operator+=(Integral auto num) { return *this = *this + BigInt(num); }
+BigInt& BigInt::operator-=(Integral auto num) { return *this = *this + BigInt(num); }
+BigInt& BigInt::operator*=(Integral auto num) { return *this = *this + BigInt(num); }
 
 #endif  // BIGINT_H

@@ -148,9 +148,10 @@ BigInt BigInt::operator-(const BigInt&) const {
 //     return *this;
 // }
 
-//  BigInt& BigInt::operator+=(const BigInt&) {
-//     return *this;
-// }
+BigInt& BigInt::operator+=(const BigInt& other) {
+    return *this = *this + other;
+}
+
 //  BigInt& BigInt::operator-=(const BigInt&) {
 //     return *this;
 // }
