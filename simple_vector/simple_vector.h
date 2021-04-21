@@ -19,7 +19,7 @@ class SimpleVector {
     SimpleVector(const SimpleVector& other)
         : _size(other._size), _capacity(other._capacity)
         , _begin(std::make_unique<T[]>(other._capacity)) {
-            std::copy(other.begin(), other.end(), _begin);
+            std::copy(other.begin(), other.end(), begin());
     }
 
     SimpleVector& operator =(const SimpleVector& rhs) {

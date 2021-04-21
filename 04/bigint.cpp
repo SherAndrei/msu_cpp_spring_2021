@@ -103,21 +103,57 @@ bool BigInt::operator == (const BigInt& rhs) const {
             rng::equal(blocks_, rhs.blocks_));
 }
 
-// constexpr BigInt BigInt::operator+(const BigInt&) const {
+BigInt BigInt::operator-() const {
+    BigInt res{*this};
+    res.negative_ ^= negative_;
+    return res;
+}
+
+BigInt BigInt::operator+(const BigInt& rhs) const {
+    if (negative_ != rhs.negative_)
+        return *this - (-rhs);
+
+    BigInt Sum;
+    Sum.negative_ = negative_;
+
+    block_type carry = 0;
+
+    auto add_to_sum = [&] (block_type num) {
+        Block sum(num + carry);
+        carry = sum.number / _BASE_;
+        sum.number %= _BASE_;
+        Sum.blocks_.push_back(sum);
+    };
+
+    auto [min, max] = std::minmax(blocks_.size(), rhs.blocks_.size());
+    for (size_t i = 0; i < min; i++) {
+        add_to_sum(blocks_[i].number + rhs.blocks_[i].number);
+    }
+
+    auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
+    for (size_t i = min; i < max; i++) {
+        add_to_sum(max_cont[i].number);
+    }
+
+    Sum.blocks_.push_back(Block(carry));
+    Sum.remove_leading_zeros();
+    return Sum;
+}
+
+BigInt BigInt::operator-(const BigInt&) const {
+    return *this;
+}
+
+//  BigInt BigInt::operator*(const BigInt&) const {
 //     return *this;
 // }
-// constexpr BigInt BigInt::operator-(const BigInt&) const {
+
+//  BigInt& BigInt::operator+=(const BigInt&) {
 //     return *this;
 // }
-// constexpr BigInt BigInt::operator*(const BigInt&) const {
+//  BigInt& BigInt::operator-=(const BigInt&) {
 //     return *this;
 // }
-// constexpr BigInt& BigInt::operator+=(const BigInt&) {
-//     return *this;
-// }
-// constexpr BigInt& BigInt::operator-=(const BigInt&) {
-//     return *this;
-// }
-// constexpr BigInt& BigInt::operator*=(const BigInt&) {
+//  BigInt& BigInt::operator*=(const BigInt&) {
 //     return *this;
 // }

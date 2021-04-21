@@ -39,6 +39,16 @@ class BigInt {
     bool operator ==(const BigInt&) const;
     auto operator<=>(const BigInt&) const = default;
 
+    BigInt operator-() const;
+
+    BigInt operator+(const BigInt&) const;
+    BigInt operator-(const BigInt&) const;
+    BigInt operator*(const BigInt&) const;
+
+    BigInt& operator+=(const BigInt&);
+    BigInt& operator-=(const BigInt&);
+    BigInt& operator*=(const BigInt&);
+
  public:
     bool operator  <(Integral auto) const;
     bool operator ==(Integral auto) const;
@@ -68,15 +78,8 @@ BigInt& BigInt::operator=(Integral auto num) {
     return *this = BigInt(std::to_string(num));
 }
 
-bool BigInt::operator < (Integral auto num) const {
-    return *this < BigInt(num);
-}
+bool BigInt::operator  <(Integral auto num) const { return *this < BigInt(num);   }
+bool BigInt::operator ==(Integral auto num) const { return *this == BigInt(num);  }
+auto BigInt::operator<=>(Integral auto num) const { return *this <=> BigInt(num); }
 
-bool BigInt::operator == (Integral auto num) const {
-    return *this == BigInt(num);
-}
-
-auto BigInt::operator<=>(Integral auto num) const {
-    return *this <=> BigInt(num);
-}
 #endif  // BIGINT_H

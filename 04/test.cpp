@@ -13,6 +13,7 @@ void TestIOstream();
 void TestBigIntComparison();
 void TestStringConstructor();
 void TestIntegerConctructor();
+void TestSum();
 
 namespace {
 
@@ -77,9 +78,10 @@ void TestIntegerConctructor() {
     do_assert(std::numeric_limits<unsigned long long>::max());
 }
 
+using ll_lim  = std::numeric_limits<long long>;
+using llu_lim = std::numeric_limits<long long unsigned>;
+
 void TestBigIntComparison() {
-    using ll_lim  = std::numeric_limits<long long>;
-    using llu_lim = std::numeric_limits<long long unsigned>;
     ASSERT_EQUAL(BigInt("42"), 42);
     ASSERT_EQUAL(42, BigInt("42"));
     ASSERT_EQUAL(BigInt("-42"), -42);
@@ -99,10 +101,24 @@ void TestBigIntComparison() {
     ASSERT(BigInt("-11111111111111111111111111111111") < ll_lim::min());
 }
 
+void TestSum() {
+    ASSERT_EQUAL(BigInt(1) + BigInt(1), BigInt(2));
+    // ASSERT_EQUAL(BigInt(1) + BigInt(-1), BigInt(0));
+
+    ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::max()) + BigInt(1), BigInt(llu_lim::max()));
+    // ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::min()), -1);
+
+    ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") +
+                 BigInt("000000000000000000000000000000000000000001"), 2);
+    // ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") +
+                //  BigInt("-000000000000000000000000000000000000000001"), 0);
+}
+
 int main() {
     TestRunner tr;
     RUN_TEST(tr, TestIOstream);
     RUN_TEST(tr, TestStringConstructor);
     RUN_TEST(tr, TestIntegerConctructor);
     RUN_TEST(tr, TestBigIntComparison);
+    RUN_TEST(tr, TestSum);
 }

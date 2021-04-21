@@ -5,7 +5,7 @@
 
 using block_type = uint64_t;
 constexpr block_type _BASE_ = 100'000'000;
-constexpr size_t _BASE_NDIGITS_ = 9;
+constexpr size_t _BASE_NDIGITS_ = 8;
 
 struct Block {
     block_type number;
