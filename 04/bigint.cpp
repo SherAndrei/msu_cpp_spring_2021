@@ -105,7 +105,9 @@ bool BigInt::operator == (const BigInt& rhs) const {
 
 BigInt BigInt::operator-() const {
     BigInt res{*this};
-    res.negative_ ^= negative_;
+    res.negative_ ^= true;
+    if (res.negative_ && blocks_.size() == 1 && blocks_[0].number == 0)
+        res.negative_ = false;
     return res;
 }
 
@@ -118,7 +120,7 @@ BigInt BigInt::operator+(const BigInt& rhs) const {
 
     block_type carry = 0;
 
-    auto add_to_sum = [&] (block_type num) {
+    auto add_block = [&] (block_type num) {
         Block sum(num + carry);
         carry = sum.number / _BASE_;
         sum.number %= _BASE_;
@@ -127,12 +129,12 @@ BigInt BigInt::operator+(const BigInt& rhs) const {
 
     auto [min, max] = std::minmax(blocks_.size(), rhs.blocks_.size());
     for (size_t i = 0; i < min; i++) {
-        add_to_sum(blocks_[i].number + rhs.blocks_[i].number);
+        add_block(blocks_[i].number + rhs.blocks_[i].number);
     }
 
     auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
     for (size_t i = min; i < max; i++) {
-        add_to_sum(max_cont[i].number);
+        add_block(max_cont[i].number);
     }
 
     Sum.blocks_.push_back(Block(carry));

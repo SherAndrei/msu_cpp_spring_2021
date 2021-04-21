@@ -5,18 +5,17 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <memory>
 
 #include "simple_vector.h"
 #include "block.h"
 
-
 template <class T>
-concept Integral = std::is_integral<T>::value;
+concept Integral = std::is_integral_v<T>;
 
 class BigInt {
  public:
     BigInt() = default;
+
     explicit BigInt(std::string_view sv);
     BigInt& operator=(std::string_view sv);
 
@@ -50,24 +49,23 @@ class BigInt {
     BigInt& operator*=(const BigInt&);
 
  public:
-    bool operator  <(Integral auto) const;
-    bool operator ==(Integral auto) const;
-    auto operator<=>(Integral auto) const;
+    bool operator  <(Integral auto num) const { return *this   < BigInt(num); }
+    bool operator ==(Integral auto num) const { return *this  == BigInt(num); }
+    auto operator<=>(Integral auto num) const { return *this <=> BigInt(num); }
 
-    BigInt operator+(Integral auto) const;
-    BigInt operator-(Integral auto) const;
-    BigInt operator*(Integral auto) const;
+    BigInt operator+(Integral auto num) const { return *this + BigInt(num); }
+    BigInt operator-(Integral auto num) const { return *this - BigInt(num); }
+    BigInt operator*(Integral auto num) const { return *this * BigInt(num); }
 
-    BigInt& operator+=(Integral auto);
-    BigInt& operator-=(Integral auto);
-    BigInt& operator*=(Integral auto);
+    BigInt& operator+=(Integral auto num) { return *this = *this + BigInt(num); }
+    BigInt& operator-=(Integral auto num) { return *this = *this - BigInt(num); }
+    BigInt& operator*=(Integral auto num) { return *this = *this * BigInt(num); }
 
  private:
     void remove_leading_zeros();
 
  private:
     bool negative_ = false;
-
     SimpleVector<Block> blocks_;
 };
 
@@ -81,17 +79,5 @@ BigInt::BigInt(Integral auto num) {
 BigInt& BigInt::operator=(Integral auto num) {
     return *this = BigInt(std::to_string(num));
 }
-
-bool BigInt::operator  <(Integral auto num) const { return *this   < BigInt(num); }
-bool BigInt::operator ==(Integral auto num) const { return *this  == BigInt(num); }
-auto BigInt::operator<=>(Integral auto num) const { return *this <=> BigInt(num); }
-
-BigInt BigInt::operator+(Integral auto num) const { return *this + BigInt(num); }
-BigInt BigInt::operator-(Integral auto num) const { return *this - BigInt(num); }
-BigInt BigInt::operator*(Integral auto num) const { return *this * BigInt(num); }
-
-BigInt& BigInt::operator+=(Integral auto num) { return *this = *this + BigInt(num); }
-BigInt& BigInt::operator-=(Integral auto num) { return *this = *this + BigInt(num); }
-BigInt& BigInt::operator*=(Integral auto num) { return *this = *this + BigInt(num); }
 
 #endif  // BIGINT_H

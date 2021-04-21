@@ -13,6 +13,7 @@ void TestIOstream();
 void TestBigIntComparison();
 void TestStringConstructor();
 void TestIntegerConctructor();
+void TestUnary();
 void TestSum();
 
 namespace {
@@ -101,6 +102,13 @@ void TestBigIntComparison() {
     ASSERT(BigInt("-11111111111111111111111111111111") < ll_lim::min());
 }
 
+void TestUnary() {
+    ASSERT_EQUAL(BigInt(-1), -BigInt(1));
+    ASSERT_EQUAL(BigInt("-0"), -BigInt(0));
+    ASSERT_EQUAL(BigInt(5), -BigInt(-5));
+    ASSERT_EQUAL(BigInt(-5), -(-BigInt(-5)));
+}
+
 void TestSum() {
     ASSERT_EQUAL(BigInt(1) + BigInt(1), BigInt(2));
     // ASSERT_EQUAL(BigInt(1) + BigInt(-1), BigInt(0));
@@ -120,5 +128,6 @@ int main() {
     RUN_TEST(tr, TestStringConstructor);
     RUN_TEST(tr, TestIntegerConctructor);
     RUN_TEST(tr, TestBigIntComparison);
+    RUN_TEST(tr, TestUnary);
     RUN_TEST(tr, TestSum);
 }
