@@ -15,6 +15,7 @@ void TestStringConstructor();
 void TestIntegerConctructor();
 void TestUnary();
 void TestSum();
+void TestSub();
 
 namespace {
 
@@ -111,15 +112,38 @@ void TestUnary() {
 
 void TestSum() {
     ASSERT_EQUAL(BigInt(1) + BigInt(1), BigInt(2));
-    // ASSERT_EQUAL(BigInt(1) + BigInt(-1), BigInt(0));
+    ASSERT_EQUAL(BigInt(1) + BigInt(-1), BigInt(0));
 
-    ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::max()) + BigInt(1), BigInt(llu_lim::max()));
-    // ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::min()), -1);
+    ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::max()) + 1, BigInt(llu_lim::max()));
+    ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::min()), -1);
 
     ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") +
                  BigInt("000000000000000000000000000000000000000001"), 2);
-    // ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") +
-                //  BigInt("-000000000000000000000000000000000000000001"), 0);
+    ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") +
+                 BigInt("-000000000000000000000000000000000000000001"), 0);
+
+    ASSERT_EQUAL(BigInt("100000000000000000000000000000000000000000") +
+                 BigInt("100000000000000000000000000000000000000000"),
+                 BigInt("200000000000000000000000000000000000000000"));
+}
+
+void TestSub() {
+    ASSERT_EQUAL(BigInt(2) - BigInt(1), BigInt(1));
+    ASSERT_EQUAL(BigInt(1) - (-BigInt(1)), BigInt(2));
+
+    ASSERT_EQUAL(BigInt(llu_lim::max()) - BigInt(ll_lim::max()) - BigInt(ll_lim::max()), 1);
+    ASSERT_EQUAL(-BigInt(ll_lim::max()) + BigInt(llu_lim::max()) - BigInt(ll_lim::max()), 1);
+    ASSERT_EQUAL(-BigInt(ll_lim::max()) - BigInt(ll_lim::max()) + BigInt(llu_lim::max()), 1);
+    ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(1), -BigInt(ll_lim::min()));
+
+    ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") -
+                 BigInt("000000000000000000000000000000000000000001"), 0);
+    ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") -
+                 BigInt("-000000000000000000000000000000000000000001"), 2);
+
+    ASSERT_EQUAL(BigInt("100000000000000000000000000000000000000000") -
+                 BigInt("200000000000000000000000000000000000000000"),
+                 BigInt("-100000000000000000000000000000000000000000"));
 }
 
 int main() {
@@ -130,4 +154,5 @@ int main() {
     RUN_TEST(tr, TestBigIntComparison);
     RUN_TEST(tr, TestUnary);
     RUN_TEST(tr, TestSum);
+    RUN_TEST(tr, TestSub);
 }

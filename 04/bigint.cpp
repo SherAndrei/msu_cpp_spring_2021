@@ -120,21 +120,21 @@ BigInt BigInt::operator+(const BigInt& rhs) const {
 
     block_type carry = 0;
 
-    auto add_block = [&] (block_type num) {
-        Block sum(num + carry);
+    auto add_block = [&] (block_type lhs, block_type rhs) {
+        Block sum(lhs + rhs + carry);
         carry = sum.number / _BASE_;
         sum.number %= _BASE_;
-        Sum.blocks_.push_back(sum);
+        return sum;
     };
 
     auto [min, max] = std::minmax(blocks_.size(), rhs.blocks_.size());
     for (size_t i = 0; i < min; i++) {
-        add_block(blocks_[i].number + rhs.blocks_[i].number);
+        Sum.blocks_.push_back(add_block(blocks_[i].number, rhs.blocks_[i].number));
     }
 
     auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
     for (size_t i = min; i < max; i++) {
-        add_block(max_cont[i].number);
+        Sum.blocks_.push_back(add_block(max_cont[i].number, 0));
     }
 
     Sum.blocks_.push_back(Block(carry));
@@ -142,21 +142,49 @@ BigInt BigInt::operator+(const BigInt& rhs) const {
     return Sum;
 }
 
-BigInt BigInt::operator-(const BigInt&) const {
+BigInt BigInt::operator-(const BigInt& rhs) const {
+    if (negative_ != rhs.negative_)
+        return *this + (-rhs);
+
+    auto abs = [] (const BigInt& bi) {
+        return (bi < 0) ? -bi : bi;
+    };
+
+    bool abs_greater = (abs(*this) < abs(rhs));
+    auto& reduced = abs_greater ? rhs : *this;
+    auto& subtracted = abs_greater ? *this : rhs;
+
+    BigInt Diff(reduced);
+    if (abs_greater)
+        Diff.negative_ ^= true;
+
+    block_type debt = 0;
+
+    auto subtract_block = [&] (block_type lhs, block_type rhs) {
+        if (lhs < debt + rhs) {
+            lhs += _BASE_ - debt;
+            debt = 1;
+        } else {
+            lhs -= debt;
+            debt = 0;
+}
+        return Block(lhs - rhs);
+    };
+
+    for (size_t i = 0; i < subtracted.blocks_.size(); ++i)
+        Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number,
+                                         subtracted.blocks_[i].number);
+    for (size_t i = subtracted.blocks_.size(); i < reduced.blocks_.size(); ++i)
+        Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number, 0);
+
+    Diff.remove_leading_zeros();
+    return Diff;
+}
+
+BigInt BigInt::operator*(const BigInt&) const {
     return *this;
 }
 
-//  BigInt BigInt::operator*(const BigInt&) const {
-//     return *this;
-// }
-
-BigInt& BigInt::operator+=(const BigInt& other) {
-    return *this = *this + other;
-}
-
-//  BigInt& BigInt::operator-=(const BigInt&) {
-//     return *this;
-// }
-//  BigInt& BigInt::operator*=(const BigInt&) {
-//     return *this;
-// }
+BigInt& BigInt::operator+=(const BigInt& other) { return *this = *this + other; }
+BigInt& BigInt::operator-=(const BigInt& other) { return *this = *this - other; }
+BigInt& BigInt::operator*=(const BigInt& other) { return *this = *this * other; }
