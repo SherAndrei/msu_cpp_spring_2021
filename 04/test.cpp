@@ -17,6 +17,7 @@ void TestUnary();
 void TestSum();
 void TestSub();
 void TestMult();
+void TestUsage();
 
 namespace {
 
@@ -53,9 +54,9 @@ void TestStringConstructor() {
         ASSERT_EQUAL(bint.to_string(), os.str());
     }
 
-    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000000").to_string(), "0");
-    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000001").to_string(), "1");
-    ASSERT_EQUAL(BigInt("-0000000000000000000000000000000000000000000001").to_string(), "-1");
+    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000000"), 0);
+    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000001"), 1);
+    ASSERT_EQUAL(BigInt("-0000000000000000000000000000000000000000000001"), -1);
 }
 
 void TestIntegerConctructor() {
@@ -112,6 +113,7 @@ void TestUnary() {
 }
 
 void TestSum() {
+    ASSERT_EQUAL(BigInt(0) + BigInt(0), 0);
     ASSERT_EQUAL(BigInt(1) + BigInt(1), BigInt(2));
     ASSERT_EQUAL(BigInt(1) + BigInt(-1), BigInt(0));
 
@@ -129,6 +131,10 @@ void TestSum() {
 }
 
 void TestSub() {
+    ASSERT_EQUAL(BigInt(0) - BigInt(0), 0);
+    ASSERT_EQUAL(-BigInt(0) + BigInt(0), 0);
+    ASSERT_EQUAL(BigInt(1) - 0, 1);
+
     ASSERT_EQUAL(BigInt(2) - BigInt(1), BigInt(1));
     ASSERT_EQUAL(BigInt(1) - (-BigInt(1)), BigInt(2));
 
@@ -162,6 +168,29 @@ void TestMult() {
     ASSERT_EQUAL(BigInt("00000000000000000000000000001") * (-1), -1);
 }
 
+namespace {
+    BigInt factorial(const BigInt& num) {
+        return (num > 1) ? (num * factorial(num - 1)) : BigInt(1);
+    }
+
+    BigInt fibonacci(const BigInt& num) {
+        BigInt a(0), b(1), c, i;
+        if (num == 0)
+            return a;
+        for (i = 2; i <= num; ++i) {
+            c = a + b;
+            a = b;
+            b = c;
+        }
+        return b;
+    }
+}  // namespace
+
+void TestUsage() {
+    ASSERT_EQUAL(BigInt("265252859812191058636308480000000"), factorial(BigInt(30)));
+    ASSERT_EQUAL(BigInt("110560307156090817237632754212345"), fibonacci(BigInt(155)));
+}
+
 int main() {
     TestRunner tr;
     RUN_TEST(tr, TestIOstream);
@@ -172,4 +201,5 @@ int main() {
     RUN_TEST(tr, TestSum);
     RUN_TEST(tr, TestSub);
     RUN_TEST(tr, TestMult);
+    RUN_TEST(tr, TestUsage);
 }

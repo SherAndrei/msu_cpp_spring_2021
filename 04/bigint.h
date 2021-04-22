@@ -40,6 +40,12 @@ class BigInt {
 
     BigInt operator-() const;
 
+    BigInt& operator++();
+    BigInt& operator--();
+
+    BigInt operator++(int) const;
+    BigInt operator--(int) const;
+
     BigInt operator+(const BigInt&) const;
     BigInt operator-(const BigInt&) const;
     BigInt operator*(const BigInt&) const;
