@@ -84,7 +84,7 @@ BigInt::BigInt(Integral auto num) {
 }
 
 BigInt& BigInt::operator=(Integral auto num) {
-    return *this = BigInt(std::to_string(num));
+    return *this = BigInt(num);
 }
 
 #endif  // BIGINT_H

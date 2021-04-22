@@ -11,10 +11,10 @@ UTILS_DIR = ./../utils/
 SVECTOR_DIR = ./../simple_vector/
 PROJECT_NAME = bigint
 
-all: test
-	./test
+all: test.out
+	./test.out
 
-test: test.o $(PROJECT_NAME).o block.o
+test.out: test.o $(PROJECT_NAME).o block.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
 
 test.o: test.cpp $(PROJECT_NAME).o
@@ -29,10 +29,10 @@ block.o: block.cpp block.h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test
+debug: test.out
 
 release: CFLAGS += -O3 -DRELEASE
-release: test
+release: test.out
 
 clean:
-	rm -f *.o *.a test
+	rm -f *.o *.a test.out

@@ -5,7 +5,7 @@ CFLAGS :=  -std=c++20 -W  -Wall      -Werror         -pedantic \
  		   -Wcast-align   -Wpointer-arith -Wformat-security \
  		   -Wformat       -Wwrite-strings -Wcast-align \
  		   -Wunused       -Wcast-qual    -Wmissing-declarations
-# LDFLAGS := -fsanitize=address
+LDFLAGS := -fsanitize=address
 
 UTILS_DIR = ./../utils/
 PROJECT_NAME = serialize
@@ -25,10 +25,10 @@ $(PROJECT_NAME).o: $(PROJECT_NAME).cpp $(PROJECT_NAME).h sererr.h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test
+debug: test.out
 
 release: CFLAGS += -O3 -DRELEASE
-release: test
+release: test.out
 
 clean:
-	rm -f *.o *.a test
+	rm -f *.o *.a test.out
