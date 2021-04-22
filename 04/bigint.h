@@ -1,6 +1,7 @@
 #ifndef BIGINT_H
 #define BIGINT_H
 
+#include <concepts>
 #include <compare>
 #include <iostream>
 #include <string>
@@ -8,9 +9,6 @@
 
 #include "simple_vector.h"
 #include "block.h"
-
-template <class T>
-concept Integral = std::is_integral_v<T>;
 
 class BigInt {
  public:
@@ -22,8 +20,8 @@ class BigInt {
     BigInt(const BigInt&) = default;
     BigInt& operator=(const BigInt&) = default;
 
-    explicit BigInt(Integral auto num);
-    BigInt& operator=(Integral auto num);
+    explicit BigInt(std::integral auto num);
+    BigInt& operator=(std::integral auto num);
 
     BigInt(BigInt&&) = default;
     BigInt& operator=(BigInt&&) = default;
@@ -55,17 +53,17 @@ class BigInt {
     BigInt& operator*=(const BigInt&);
 
  public:
-    bool operator  <(Integral auto num) const { return *this   < BigInt(num); }
-    bool operator ==(Integral auto num) const { return *this  == BigInt(num); }
-    auto operator<=>(Integral auto num) const { return *this <=> BigInt(num); }
+    bool operator  <(std::integral auto num) const { return *this   < BigInt(num); }
+    bool operator ==(std::integral auto num) const { return *this  == BigInt(num); }
+    auto operator<=>(std::integral auto num) const { return *this <=> BigInt(num); }
 
-    BigInt operator+(Integral auto num) const { return *this + BigInt(num); }
-    BigInt operator-(Integral auto num) const { return *this - BigInt(num); }
-    BigInt operator*(Integral auto num) const { return *this * BigInt(num); }
+    BigInt operator+(std::integral auto num) const { return *this + BigInt(num); }
+    BigInt operator-(std::integral auto num) const { return *this - BigInt(num); }
+    BigInt operator*(std::integral auto num) const { return *this * BigInt(num); }
 
-    BigInt& operator+=(Integral auto num) { return *this = *this + BigInt(num); }
-    BigInt& operator-=(Integral auto num) { return *this = *this - BigInt(num); }
-    BigInt& operator*=(Integral auto num) { return *this = *this * BigInt(num); }
+    BigInt& operator+=(std::integral auto num) { return *this = *this + BigInt(num); }
+    BigInt& operator-=(std::integral auto num) { return *this = *this - BigInt(num); }
+    BigInt& operator*=(std::integral auto num) { return *this = *this * BigInt(num); }
 
  private:
     void remove_leading_zeros();
@@ -79,11 +77,11 @@ class BigInt {
 std::istream& operator>>(std::istream&, BigInt&);
 std::ostream& operator<<(std::ostream&, const BigInt&);
 
-BigInt::BigInt(Integral auto num) {
+BigInt::BigInt(std::integral auto num) {
     *this = BigInt(std::to_string(num));
 }
 
-BigInt& BigInt::operator=(Integral auto num) {
+BigInt& BigInt::operator=(std::integral auto num) {
     return *this = BigInt(num);
 }
 

@@ -60,7 +60,7 @@ void TestStringConstructor() {
 }
 
 void TestIntegerConctructor() {
-    auto do_assert = [](Integral auto number) {
+    auto do_assert = [](std::integral auto number) {
         ASSERT_EQUAL(BigInt(number).to_string(), std::to_string(number));
     };
 
