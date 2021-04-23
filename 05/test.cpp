@@ -82,9 +82,9 @@ struct IncorrectData {
 };
 
 void testCorruptedArchive() {
-    for (auto&& corrupted_data : {"", "true 1", "1", "true", "1 1 1 1 1",
-            "111111111111111111111111111111111 true",
-            "qwe ewq", "100 TRUE", "10a0 true"}) {
+    for (auto&& corrupted_data : {"", "1", "true", "true 1",
+            "1 1 1 1 1", "111111111111111111111111111111111 true",
+            "1 1", "1 0", "qwe ewq", "100 TRUE", "10a0 true"}) {
         std::stringstream ss(corrupted_data);
         Deserializer ds(ss);
         SimpleData sd;
@@ -106,4 +106,3 @@ int main() {
     RUN_TEST(tr, testVariousData);
     RUN_TEST(tr, testCorruptedArchive);
 }
-
