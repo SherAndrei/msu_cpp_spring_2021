@@ -9,7 +9,7 @@ void testVariousData();
 void testCorruptedArchive();
 
 template<typename Data>
-void doCorrectTest(const Data& data, const std::string& s) {
+void doCorrectTest(Data&& data, const std::string& s) {
     std::stringstream stream;
     Serializer serializer(stream);
     ASSERT(serializer.save(data) == Error::NoError);
@@ -36,9 +36,9 @@ struct SimpleData {
 };
 
 void testSimpleData() {
-    doCorrectTest(SimpleData{ 1ull, true}, "1 true ");
-    doCorrectTest(SimpleData{ 0ull, false}, "0 false ");
-    doCorrectTest(SimpleData{ 100, 1}, "100 true ");
+    doCorrectTest(SimpleData{ 1ull, true }, "1 true ");
+    doCorrectTest(SimpleData{ 0ull, false }, "0 false ");
+    doCorrectTest(SimpleData{ 100, 1 }, "100 true ");
 }
 
 struct VariousData {

@@ -43,20 +43,20 @@ class Serializer : public ISerializer {
         : out_(out) {}
 
     template<typename T> requires Serializable<T, Serializer>
-    Error save(T obj) {
+    Error save(T& obj) {
         return obj.serialize(*this);
     }
 
  private:
-    Error process(bool& var) override;
-    Error process(uint64_t& var) override;
+    Error process(bool&) override;
+    Error process(uint64_t&) override;
  private:
     std::ostream& out_;
 };
 
 template<typename T, typename Deserializer>
 concept Deserializable = requires(T x, Deserializer s) {
-    { x.serialize(s) } -> std::same_as<Error>;
+    { x.deserialize(s) } -> std::same_as<Error>;
 };
 
 class Deserializer : public ISerializer {
