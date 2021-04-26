@@ -9,10 +9,10 @@ LDFLAGS := -fsanitize=address
 
 UTILS_DIR = ./../utils/
 
-all: test
-	./test
+all: test.out
+	./test.out
 
-test: test.o
+test.out: test.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
 
 test.o: test.cpp simple_vector.h
@@ -21,10 +21,10 @@ test.o: test.cpp simple_vector.h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test
+debug: test.out
 
 release: CFLAGS += -O3 -DRELEASE
-release: test
+release: test.out
 
 clean:
-	rm -f *.o *.a test
+	rm -f *.o *.a test.out

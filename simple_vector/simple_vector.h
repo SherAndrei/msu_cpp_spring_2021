@@ -6,6 +6,7 @@
 #include <memory>
 #include <iterator>
 #include <algorithm>
+#include <ranges>
 
 template <typename T>
 class SimpleVector {
@@ -19,12 +20,12 @@ class SimpleVector {
     SimpleVector(const SimpleVector& other)
         : _size(other._size), _capacity(other._capacity)
         , _begin(std::make_unique<T[]>(other._capacity)) {
-            std::copy(other.begin(), other.end(), begin());
+            std::ranges::copy(other, *this);
     }
 
     SimpleVector& operator =(const SimpleVector& rhs) {
         if (rhs._size <= _capacity) {
-            std::copy(rhs.begin(), rhs.end(), begin());
+            std::ranges::copy(rhs, *this);
             _size = rhs._size;
         } else {
             SimpleVector<T> tmp(rhs);
@@ -35,60 +36,54 @@ class SimpleVector {
         return *this;
     }
 
-    SimpleVector(SimpleVector&& other)
+    SimpleVector(SimpleVector&& other) noexcept
         : _size(other._size), _capacity(other._capacity)
         , _begin(std::move(other._begin)) {
             other._capacity = other._size = 0u;
     }
 
-    SimpleVector& operator =(SimpleVector&& rhs) {
+    SimpleVector& operator =(SimpleVector&& rhs) noexcept {
         _size     = std::exchange(rhs._size, 0ul);
         _capacity = std::exchange(rhs._capacity, 0ul);
         _begin    = std::exchange(rhs._begin, nullptr);
         return *this;
     }
 
-    ~SimpleVector() = default;
+    ~SimpleVector() noexcept = default;
 
  public:
-    T& operator[](size_t index) { return _begin[index]; }
-    const T& operator[](size_t index) const { return _begin[index]; }
+    T& operator[](size_t index) noexcept { return _begin[index]; }
+    const T& operator[](size_t index) const noexcept { return _begin[index]; }
 
-    auto begin() { return _begin.get(); }
-    auto end()   { return _begin.get() + _size; }
-    const auto begin() const { return _begin.get(); }
-    const auto end()   const { return _begin.get() + _size; }
+    auto begin() noexcept { return data(); }
+    auto end()   noexcept { return data() + _size; }
+    const auto begin() const noexcept { return data(); }
+    const auto end()   const noexcept { return data() + _size; }
 
-    auto rbegin() { return std::make_reverse_iterator(end()); }
-    auto rend()   { return std::make_reverse_iterator(begin()); }
-    const auto rbegin() const { return std::make_reverse_iterator(end()); }
-    const auto rend()   const { return std::make_reverse_iterator(begin()); }
+    auto rbegin() noexcept { return std::make_reverse_iterator(end()); }
+    auto rend()   noexcept { return std::make_reverse_iterator(begin()); }
+    const auto rbegin() const noexcept { return std::make_reverse_iterator(end()); }
+    const auto rend()   const noexcept { return std::make_reverse_iterator(begin()); }
 
-    T& front() { return *begin(); }
-    T& back()  { return (_size == 0u) ? front() : *std::prev(end()); }
-    const T& front() const { return *_begin; }
-    const T& back()  const { return (_size == 0u) ? front() : *std::prev(end()); }
+    T& front() noexcept { return *begin(); }
+    T& back()  noexcept { return (_size == 0u) ? front() : *std::prev(end()); }
+    const T& front() const noexcept { return *begin(); }
+    const T& back()  const noexcept { return (_size == 0u) ? front() : *std::prev(end()); }
 
-    size_t size()     const { return _size; }
-    size_t capacity() const { return _capacity; }
+    T* data() noexcept { return _begin.get(); }
+    const T* data() const noexcept { return _begin.get(); }
 
- public:
-    bool operator==(const SimpleVector& other) const {
-        return (size() == other.size() &&
-                std::equal(begin(), end(), other.begin()));
-    }
+    size_t size()     const noexcept { return _size; }
+    size_t capacity() const noexcept { return _capacity; }
 
-    auto operator<=>(const SimpleVector& other) const {
-        return std::lexicographical_compare_three_way(begin(), end(),
-                    other.begin(), other.end());
-    }
+    bool empty() const noexcept { return begin() == end(); }
 
  private:
     void expand_if_needed() {
         if (_size >= _capacity) {
             size_t new_capacity = (_capacity == 0 ? 1 : 2 * _capacity);
             std::unique_ptr new_begin = std::make_unique<T[]>(new_capacity);
-            std::move(begin(), end(), new_begin.get());
+            std::ranges::move(*this, new_begin.get());
             _begin    = std::move(new_begin);
             _capacity = new_capacity;
         }
@@ -100,9 +95,8 @@ class SimpleVector {
         _begin[_size++] = std::move(value);
     }
 
-    void pop_back() {
-        if (_size == 0ul)
-            return;
+    void pop_back() noexcept {
+        if (empty()) return;
         _size--;
     }
 
@@ -111,5 +105,17 @@ class SimpleVector {
     size_t _capacity = 0ul;
     std::unique_ptr<T[]> _begin = nullptr;
 };
+
+template<typename T>
+inline bool operator==(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) {
+    return std::ranges::equal(lhs, rhs);
+}
+
+template<typename T>
+inline auto operator<=>(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) {
+    return std::lexicographical_compare_three_way(lhs.begin(), lhs.end(),
+                rhs.begin(), rhs.end());
+}
+
 
 #endif  // SIMPLE_VECTOR_H
