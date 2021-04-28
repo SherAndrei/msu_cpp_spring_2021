@@ -24,15 +24,8 @@ class SimpleVector {
     }
 
     SimpleVector& operator =(const SimpleVector& rhs) {
-        if (rhs._size <= _capacity) {
-            std::ranges::copy(rhs, *this);
-            _size = rhs._size;
-        } else {
-            SimpleVector<T> tmp(rhs);
-            std::swap(tmp._begin, _begin);
-            std::swap(tmp._size, _size);
-            std::swap(tmp._capacity, _capacity);
-        }
+        SimpleVector<T> tmp(rhs);
+        this->swap(tmp);
         return *this;
     }
 
@@ -43,9 +36,8 @@ class SimpleVector {
     }
 
     SimpleVector& operator =(SimpleVector&& rhs) noexcept {
-        _size     = std::exchange(rhs._size, 0ul);
-        _capacity = std::exchange(rhs._capacity, 0ul);
-        _begin    = std::exchange(rhs._begin, nullptr);
+        SimpleVector<T> tmp(std::move(rhs));
+        this->swap(tmp);
         return *this;
     }
 
@@ -66,9 +58,9 @@ class SimpleVector {
     const auto rend()   const noexcept { return std::make_reverse_iterator(begin()); }
 
     T& front() noexcept { return *begin(); }
-    T& back()  noexcept { return (_size == 0u) ? front() : *std::prev(end()); }
+    T& back()  noexcept { return *std::prev(end()); }
     const T& front() const noexcept { return *begin(); }
-    const T& back()  const noexcept { return (_size == 0u) ? front() : *std::prev(end()); }
+    const T& back()  const noexcept { return *std::prev(end()); }
 
     T* data() noexcept { return _begin.get(); }
     const T* data() const noexcept { return _begin.get(); }
@@ -90,6 +82,12 @@ class SimpleVector {
     }
 
  public:
+    void swap(SimpleVector& other) noexcept {
+        std::swap(other._begin, _begin);
+        std::swap(other._size, _size);
+        std::swap(other._capacity, _capacity);
+    }
+
     void push_back(T value) {
         expand_if_needed();
         _begin[_size++] = std::move(value);
