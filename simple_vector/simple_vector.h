@@ -11,6 +11,10 @@
 template <typename T>
 class SimpleVector {
  public:
+    using iterator = T*;
+    using const_iterator = const T*;
+
+ public:
     SimpleVector() = default;
 
     explicit SimpleVector(size_t size)
@@ -20,7 +24,7 @@ class SimpleVector {
     SimpleVector(const SimpleVector& other)
         : _size(other._size), _capacity(other._capacity)
         , _begin(std::make_unique<T[]>(other._capacity)) {
-            std::ranges::copy(other, *this);
+            std::ranges::copy(other, begin());
     }
 
     SimpleVector& operator =(const SimpleVector& rhs) {
@@ -47,10 +51,10 @@ class SimpleVector {
     T& operator[](size_t index) noexcept { return _begin[index]; }
     const T& operator[](size_t index) const noexcept { return _begin[index]; }
 
-    auto begin() noexcept { return data(); }
-    auto end()   noexcept { return data() + _size; }
-    const auto begin() const noexcept { return data(); }
-    const auto end()   const noexcept { return data() + _size; }
+    iterator begin() noexcept { return _begin.get(); }
+    iterator end()   noexcept { return _begin.get() + _size; }
+    const_iterator begin() const noexcept { return _begin.get(); }
+    const_iterator end()   const noexcept { return _begin.get() + _size; }
 
     auto rbegin() noexcept { return std::make_reverse_iterator(end()); }
     auto rend()   noexcept { return std::make_reverse_iterator(begin()); }
@@ -114,6 +118,5 @@ inline auto operator<=>(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) 
     return std::lexicographical_compare_three_way(lhs.begin(), lhs.end(),
                 rhs.begin(), rhs.end());
 }
-
 
 #endif  // SIMPLE_VECTOR_H
