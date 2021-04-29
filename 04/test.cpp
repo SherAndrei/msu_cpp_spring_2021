@@ -13,6 +13,7 @@ void TestIOstream();
 void TestBigIntComparison();
 void TestStringConstructor();
 void TestIntegerConctructor();
+void TestMove();
 void TestUnary();
 void TestSum();
 void TestSub();
@@ -85,6 +86,23 @@ void TestIntegerConctructor() {
 using ll_lim  = std::numeric_limits<long long>;
 using llu_lim = std::numeric_limits<long long unsigned>;
 
+void TestMove() {
+    {
+        BigInt lvalue(llu_lim::max());
+        BigInt newvalue(std::move(lvalue));
+        ASSERT_EQUAL(lvalue + 1, BigInt(1));
+        ASSERT_EQUAL(newvalue, llu_lim::max());
+    }
+    {
+        BigInt lvalue(llu_lim::max());
+        BigInt newvalue(2);
+        newvalue = std::move(lvalue);
+        ASSERT_EQUAL(lvalue - 1, BigInt(-1));
+        ASSERT_EQUAL(newvalue, llu_lim::max());
+    }
+}
+
+
 void TestBigIntComparison() {
     ASSERT_EQUAL(BigInt("42"), 42);
     ASSERT_EQUAL(42, BigInt("42"));
@@ -98,10 +116,12 @@ void TestBigIntComparison() {
     ASSERT(BigInt("98936913561937591991369175") != BigInt("-98936913561937591991369175"));
     ASSERT(BigInt("100000000000000") < BigInt("1000000000000000"));
 
+    ASSERT(4  < BigInt(5));
     ASSERT(BigInt(2)  < 3);
     ASSERT(BigInt(-1) < 1);
     ASSERT(BigInt(-3) < -2);
-    ASSERT(BigInt(llu_lim::max()) < BigInt("11111111111111111111111111111111"));
+    ASSERT(-5 < BigInt(-4));
+    ASSERT(llu_lim::max() < BigInt("11111111111111111111111111111111"));
     ASSERT(BigInt("-11111111111111111111111111111111") < ll_lim::min());
 }
 
@@ -114,11 +134,11 @@ void TestUnary() {
 
 void TestSum() {
     ASSERT_EQUAL(BigInt(0) + BigInt(0), 0);
-    ASSERT_EQUAL(BigInt(1) + BigInt(1), BigInt(2));
+    ASSERT_EQUAL(1 + BigInt(1), BigInt(2));
     ASSERT_EQUAL(BigInt(1) + BigInt(-1), BigInt(0));
 
     ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::max()) + 1, BigInt(llu_lim::max()));
-    ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(ll_lim::min()), -1);
+    ASSERT_EQUAL(ll_lim::max() + BigInt(ll_lim::min()), -1);
 
     ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") +
                  BigInt("000000000000000000000000000000000000000001"), 2);
@@ -135,12 +155,12 @@ void TestSub() {
     ASSERT_EQUAL(-BigInt(0) + BigInt(0), 0);
     ASSERT_EQUAL(BigInt(1) - 0, 1);
 
-    ASSERT_EQUAL(BigInt(2) - BigInt(1), BigInt(1));
+    ASSERT_EQUAL(2 - BigInt(1), BigInt(1));
     ASSERT_EQUAL(BigInt(1) - (-BigInt(1)), BigInt(2));
 
-    ASSERT_EQUAL(BigInt(llu_lim::max()) - BigInt(ll_lim::max()) - BigInt(ll_lim::max()), 1);
+    ASSERT_EQUAL(llu_lim::max() - BigInt(ll_lim::max()) - BigInt(ll_lim::max()), 1);
     ASSERT_EQUAL(-BigInt(ll_lim::max()) + BigInt(llu_lim::max()) - BigInt(ll_lim::max()), 1);
-    ASSERT_EQUAL(-BigInt(ll_lim::max()) - BigInt(ll_lim::max()) + BigInt(llu_lim::max()), 1);
+    ASSERT_EQUAL(-ll_lim::max() - BigInt(ll_lim::max()) + BigInt(llu_lim::max()), 1);
     ASSERT_EQUAL(BigInt(ll_lim::max()) + BigInt(1), -BigInt(ll_lim::min()));
 
     ASSERT_EQUAL(BigInt("000000000000000000000000000000000000000001") -
@@ -157,8 +177,8 @@ void TestMult() {
     ASSERT_EQUAL(BigInt(1) * 0, 0);
     ASSERT_EQUAL(BigInt(-1) * 0, BigInt(0));
     ASSERT_EQUAL(BigInt(1) * BigInt(1), 1);
-    ASSERT_EQUAL(BigInt(2) * BigInt(2), BigInt(4));
-    ASSERT_EQUAL(BigInt(-2) * BigInt(2), -4);
+    ASSERT_EQUAL(2 * BigInt(2), BigInt(4));
+    ASSERT_EQUAL(-2 * BigInt(2), -4);
     ASSERT_EQUAL(BigInt(-2) * -2, 4);
 
     ASSERT_EQUAL(BigInt(ll_lim::max()) * 2 + 1, BigInt(llu_lim::max()));
@@ -197,6 +217,7 @@ int main() {
     RUN_TEST(tr, TestStringConstructor);
     RUN_TEST(tr, TestIntegerConctructor);
     RUN_TEST(tr, TestBigIntComparison);
+    RUN_TEST(tr, TestMove);
     RUN_TEST(tr, TestUnary);
     RUN_TEST(tr, TestSum);
     RUN_TEST(tr, TestSub);

@@ -10,10 +10,13 @@
 
 namespace {
 
-std::string_view ReadToken(std::string_view& sv) {
+void LeftStrip(std::string_view& sv) {
     while (!sv.empty() && std::isspace(sv[0]))
         sv.remove_prefix(1);
+}
 
+std::string_view ReadToken(std::string_view& sv) {
+    LeftStrip(sv);
     auto pos = sv.find_first_of(" \t\n");
     auto result = sv.substr(0, pos);
     sv.remove_prefix(pos != sv.npos ? pos : sv.size());
@@ -41,6 +44,7 @@ void Parse(std::string_view sv, SimpleVector<Block>& data) {
 
 
 BigInt::BigInt(std::string_view sv) {
+    LeftStrip(sv);
     if (sv[0] == '-') {
         negative_ = true;
         sv.remove_prefix(1);
@@ -60,6 +64,10 @@ BigInt& BigInt::operator=(std::string_view sv) {
     return *this = BigInt(sv);
 }
 
+BigInt operator+(const BigInt& lhs, const BigInt& rhs) { return BigInt(lhs) += rhs; }
+BigInt operator-(const BigInt& lhs, const BigInt& rhs) { return BigInt(lhs) -= rhs; }
+BigInt operator*(const BigInt& lhs, const BigInt& rhs) { return BigInt(lhs) *= rhs; }
+
 namespace rng = std::ranges;
 
 std::string BigInt::to_string() const {
@@ -72,6 +80,11 @@ std::string BigInt::to_string() const {
     });
 
     return res;
+}
+
+void BigInt::swap(BigInt& other) {
+    blocks_.swap(other.blocks_);
+    std::swap(negative_, other.negative_);
 }
 
 void BigInt::remove_leading_zeros() {
@@ -94,17 +107,17 @@ std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
     return os << bnum.to_string();
 }
 
-bool BigInt::operator < (const BigInt& rhs) const {
-    return (rhs.negative_ <= negative_ &&
-            rng::lexicographical_compare(rng::reverse_view(blocks_),
-                rng::reverse_view(rhs.blocks_), [this] (Block lhs, Block rhs) {
-                    return (lhs.number < rhs.number) ^ negative_;
+bool operator < (const BigInt& lhs, const BigInt& rhs) {
+    return (rhs.negative_ <= lhs.negative_ &&
+            rng::lexicographical_compare(rng::reverse_view(lhs.blocks_),
+                rng::reverse_view(rhs.blocks_), [&] (Block lhsb, Block rhsb) {
+                    return (lhsb.number < rhsb.number) ^ lhs.negative_;
                 }));
 }
 
-bool BigInt::operator == (const BigInt& rhs) const {
-    return (rhs.negative_ == negative_ &&
-            rng::equal(blocks_, rhs.blocks_));
+bool operator == (const BigInt& lhs, const BigInt& rhs) {
+    return (lhs.negative_ == rhs.negative_ &&
+            rng::equal(lhs.blocks_, rhs.blocks_));
 }
 
 BigInt BigInt::operator-() const {
@@ -121,9 +134,9 @@ BigInt& BigInt::operator--() { return *this -= 1; }
 BigInt BigInt::operator++(int) const { return *this + 1; }
 BigInt BigInt::operator--(int) const { return *this - 1; }
 
-BigInt BigInt::operator+(const BigInt& rhs) const {
+BigInt& BigInt::operator+=(const BigInt& rhs) {
     if (negative_ != rhs.negative_)
-        return *this - (-rhs);
+        return *this -= (-rhs);
 
     BigInt Sum;
     Sum.negative_ = negative_;
@@ -147,12 +160,12 @@ BigInt BigInt::operator+(const BigInt& rhs) const {
 
     Sum.blocks_.push_back(Block(carry));
     Sum.remove_leading_zeros();
-    return Sum;
+    this->swap(Sum);
+    return *this;
 }
-
-BigInt BigInt::operator-(const BigInt& rhs) const {
+BigInt& BigInt::operator-=(const BigInt& rhs) {
     if (negative_ != rhs.negative_)
-        return *this + (-rhs);
+        return *this += (-rhs);
 
     auto abs = [] (const BigInt& bi) {
         return (bi < 0) ? -bi : bi;
@@ -186,10 +199,10 @@ BigInt BigInt::operator-(const BigInt& rhs) const {
         Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number, 0);
 
     Diff.remove_leading_zeros();
-    return Diff;
+    this->swap(Diff);
+    return *this;
 }
-
-BigInt BigInt::operator*(const BigInt& rhs) const {
+BigInt& BigInt::operator*=(const BigInt& rhs) {
     BigInt Prod;
     Prod.negative_ = negative_ ^ rhs.negative_;
     Prod.blocks_ = SimpleVector<Block>(blocks_.size() + rhs.blocks_.size());
@@ -207,9 +220,6 @@ BigInt BigInt::operator*(const BigInt& rhs) const {
     Prod.remove_leading_zeros();
     if (Prod.is_zero())
         Prod.negative_ = false;
-    return Prod;
+    this->swap(Prod);
+    return *this;
 }
-
-BigInt& BigInt::operator+=(const BigInt& other) { return *this = *this + other; }
-BigInt& BigInt::operator-=(const BigInt& other) { return *this = *this - other; }
-BigInt& BigInt::operator*=(const BigInt& other) { return *this = *this * other; }
