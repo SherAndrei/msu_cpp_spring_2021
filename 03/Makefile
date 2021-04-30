@@ -10,9 +10,9 @@ LDFLAGS := -fsanitize=address
 TEST_RUNNER_DIR = ./../utils/
 PROJECT_NAME = matrix
 
-test: test.o lib$(PROJECT_NAME).a
+test.out: test.o lib$(PROJECT_NAME).a
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) -L. -l$(PROJECT_NAME)
-	./test
+	./$@
 
 test.o: test.cpp lib$(PROJECT_NAME).a
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(TEST_RUNNER_DIR)
@@ -24,10 +24,10 @@ lib$(PROJECT_NAME).a: $(PROJECT_NAME).cpp $(PROJECT_NAME).h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test
+debug: test.out
 
 release: CFLAGS += -O3 -DRELEASE
-release: test
+release: test.out
 
 clean:
-	rm -f *.o *.a test
+	rm -f *.o *.a test.out

@@ -9,9 +9,9 @@ LDFLAGS := -fsanitize=address
 
 TEST_RUNNER_DIR = ./../utils/
 
-test: test.o libparser.a
+test.out: test.o libparser.a
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) -L. -lparser
-	./test
+	./$@
 
 test.o: test.cpp libparser.a
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(TEST_RUNNER_DIR)
@@ -23,10 +23,10 @@ libparser.a: parser.cpp parser.h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test
+debug: test.out
 
 release: CFLAGS += -O3 -DRELEASE
-release: test
+release: test.out
 
 clean:
-	rm -f *.o *.a test
+	rm -f *.o *.a test.out
