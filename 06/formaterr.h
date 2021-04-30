@@ -7,7 +7,7 @@ struct FormatError : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-struct BracesError : public FormatError {
+struct BracketsError : public FormatError {
     using FormatError::FormatError;
 };
 

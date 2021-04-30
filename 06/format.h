@@ -12,12 +12,18 @@
 using std::string_view;
 using std::string;
 
+bool is_end_of_token(char ch);
+void left_strip(string_view& sv);
 string_view read_token(string_view& sv);
 size_t parse_brackets(string_view brackets);
 
-string_view read_token(string_view& sv) {
+void left_strip(string_view& sv) {
     while (!sv.empty() && std::isspace(sv[0]))
         sv.remove_prefix(1);
+}
+
+string_view read_token(string_view& sv) {
+    left_strip(sv);
 
     auto pos = sv.find_first_of(" \t\n");
     auto result = sv.substr(0, pos);
@@ -25,20 +31,19 @@ string_view read_token(string_view& sv) {
     return result;
 }
 
+bool is_end_of_token(char ch) {
+    return (std::isspace(ch) || ch == '}');
+}
+
 size_t parse_brackets(string_view brackets) {
     string_view token = read_token(brackets);
-    string_view unexp_token = read_token(brackets);
-
-    if (!unexp_token.empty())
-        throw ArgumentError("Unexpected bracket token");
 
     size_t number;
     auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
 
-    if (errc == std::errc())
+    if (is_end_of_token(*ptr) && errc == std::errc())
         return number;
-
-    throw ArgumentError("Incorrect argument");
+    throw ArgumentError("Invalid argument");
 }
 
 
@@ -52,16 +57,19 @@ string format(string_view fmt, const Args&... args) {
         size_t right = fmt.find('}');
 
         if (right < left) {
-            throw BracesError("Unexpected right bracket");
+            throw BracketsError("Unexpected right bracket");
         }
         if (left == right) {  // == npos
             return fmted + string(fmt);
         }
 
         string_view inner = fmt.substr(left + 1, right - left - 1);
+        if (inner.find('{') != fmt.npos)
+            throw BracketsError("Unexpected left bracket");
+
         size_t idx = parse_brackets(inner);
         if (idx >= str_args.size())
-            throw BracesError("Incorrect index");
+            throw ArgumentError("Incorrect index");
 
         fmted += string(fmt.substr(0, left)) + str_args[idx];
 
