@@ -1,71 +1,70 @@
 #ifndef FORMAT_H
 #define FORMAT_H
 
-#include <string>
-#include <string_view>
-#include <tuple>
+
+#include <vector>
 #include <charconv>
 
+
+#include "convert.h"
 #include "formaterr.h"
 
 using std::string_view;
 using std::string;
 
+string_view read_token(string_view& sv);
+size_t parse_brackets(string_view brackets);
+
+string_view read_token(string_view& sv) {
+    while (!sv.empty() && std::isspace(sv[0]))
+        sv.remove_prefix(1);
+
+    auto pos = sv.find_first_of(" \t\n");
+    auto result = sv.substr(0, pos);
+    sv.remove_prefix(pos != sv.npos ? pos : sv.size());
+    return result;
+}
+
+size_t parse_brackets(string_view brackets) {
+    string_view token = read_token(brackets);
+
+    size_t number;
+    auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
+
+    token = read_token(brackets);
+    if (!brackets.empty())
+        throw ArgumentError("Unexpected bracket token");
+
+    if (errc == std::errc() && (*ptr == '\0' || std::isspace(*ptr)))
+        return number;
+
+    throw ArgumentError("Incorrect argument");
+}
+
+
 template<class... Args>
 string format(string_view fmt, const Args&... args) {
-    auto read_token = [] (string_view& sv) {
-        while (!sv.empty() && std::isspace(sv[0]))
-            sv.remove_prefix(1);
+    std::vector<string> str_args = convert(args...);
 
-        auto pos = sv.find_first_of(" \t\n");
-        auto result = sv.substr(0, pos);
-        sv.remove_prefix(pos != sv.npos ? pos : sv.size());
-        return result;
-    };
 
-    auto parse_bracket_token = [] (string_view& token) {
-        size_t number;
-        auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
-        if (errc == std::errc() && (*ptr == '\0' || std::isspace(*ptr)))
-            return number;
-        throw ArgumentError("Incorrect argument");
-    };
 
-    string fmted;
-    fmted.reserve(fmt.size());
+    // size_t left = fmt.find('{');
+    // size_t right = fmt.find('}');
 
-    auto t_args = std::tie(args...);
-    constexpr size_t n_args = sizeof...(Args);
+    // if (right < left) {
+    //     throw BracesError("Unexpected right bracket");
+    // }
+    // if (left == right) {  // == npos
+    //     return string(fmt);
+    // }
 
-    auto check_index = [&n_args] (size_t idx) {
-        if (idx >= n_args)
-            throw ArgumentError("Index out of range");
-    };
+    // string_view brackets = fmt.substr(left, right - left);
+    // size_t num = parse_brackets(brackets);
 
-    // bool is_brackets_open = false;
-    for (size_t pos = 0; pos < fmt.size(); ) {
-        size_t left_bracket  = fmt.find('{');
-        size_t right_bracket = fmt.find('}');
+    // string fmted = string(fmt.substr(0, left));
 
-        if (left_bracket > right_bracket)
-            throw FormatError("Unexpected left bracket");
-        if (left_bracket == fmt.npos)
-            return string(fmt);
-        if (right_bracket == fmt.npos)
-            throw FormatError("Expected right bracket");
 
-        fmted += string(fmt.substr(pos, left_bracket));
-
-        auto inner = fmt.substr(left_bracket + 1, right_bracket - 1);
-        auto bracket_token = read_token(inner);
-        size_t idx = parse_bracket_token(bracket_token);
-        check_index(idx);
-
-        fmted += std::to_string(std::get<idx>(t_args));
-
-        pos = right_bracket;
-    }
-    return fmted;
+    // return fmted;
 }
 
 #endif  // FORMAT_H
