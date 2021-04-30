@@ -90,14 +90,14 @@ void TestMove() {
     {
         BigInt lvalue(llu_lim::max());
         BigInt newvalue(std::move(lvalue));
-        ASSERT_EQUAL(lvalue + 1, BigInt(1));
+        ASSERT_EQUAL(lvalue, BigInt());
         ASSERT_EQUAL(newvalue, llu_lim::max());
     }
     {
         BigInt lvalue(llu_lim::max());
         BigInt newvalue(2);
         newvalue = std::move(lvalue);
-        ASSERT_EQUAL(lvalue - 1, BigInt(-1));
+        ASSERT_EQUAL(lvalue, BigInt());
         ASSERT_EQUAL(newvalue, llu_lim::max());
     }
 }

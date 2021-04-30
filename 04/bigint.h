@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-#include "simple_vector.h"
+#include "Vector.h"
 #include "block.h"
 
 class BigInt {
@@ -52,7 +52,7 @@ class BigInt {
 
  private:
     bool negative_ = false;
-    SimpleVector<Block> blocks_;
+    Vector<Block> blocks_;
 };
 
 std::istream& operator>>(std::istream&, BigInt&);

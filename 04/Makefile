@@ -8,7 +8,7 @@ CFLAGS :=  -std=c++20 -W  -Wall      -Werror         -pedantic \
 LDFLAGS := -fsanitize=address
 
 UTILS_DIR = ./../utils/
-SVECTOR_DIR = ./../simple_vector/
+SVECTOR_DIR = ./../07/
 PROJECT_NAME = bigint
 
 all: test.out

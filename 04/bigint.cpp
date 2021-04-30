@@ -27,7 +27,7 @@ bool IsEndOfToken(char ch) {
     return (ch == '\0' || std::isdigit(ch));
 }
 
-void Parse(std::string_view sv, SimpleVector<Block>& data) {
+void Parse(std::string_view sv, Vector<Block>& data) {
     uint64_t number;
     while (!sv.empty()) {
         if (auto token = ReadToken(sv);
@@ -150,7 +150,7 @@ BigInt& BigInt::operator+=(const BigInt& rhs) {
         return sum;
     };
 
-    auto [min, max] = std::minmax(blocks_.size(), rhs.blocks_.size());
+    auto [min, max] = std::minmax({ blocks_.size(), rhs.blocks_.size() });
     for (size_t i = 0; i < min; i++)
         Sum.blocks_.push_back(add_block(blocks_[i].number, rhs.blocks_[i].number));
 
@@ -205,7 +205,7 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
 BigInt& BigInt::operator*=(const BigInt& rhs) {
     BigInt Prod;
     Prod.negative_ = negative_ ^ rhs.negative_;
-    Prod.blocks_ = SimpleVector<Block>(blocks_.size() + rhs.blocks_.size());
+    Prod.blocks_ = Vector<Block>(blocks_.size() + rhs.blocks_.size());
 
     for (size_t i = 0; i < blocks_.size(); ++i) {
         block_type carry = 0;
