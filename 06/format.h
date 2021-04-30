@@ -1,10 +1,10 @@
 #ifndef FORMAT_H
 #define FORMAT_H
 
-
+#include <string>
+#include <string_view>
 #include <vector>
 #include <charconv>
-
 
 #include "convert.h"
 #include "formaterr.h"
@@ -27,15 +27,15 @@ string_view read_token(string_view& sv) {
 
 size_t parse_brackets(string_view brackets) {
     string_view token = read_token(brackets);
+    string_view unexp_token = read_token(brackets);
+
+    if (!unexp_token.empty())
+        throw ArgumentError("Unexpected bracket token");
 
     size_t number;
     auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
 
-    token = read_token(brackets);
-    if (!brackets.empty())
-        throw ArgumentError("Unexpected bracket token");
-
-    if (errc == std::errc() && (*ptr == '\0' || std::isspace(*ptr)))
+    if (errc == std::errc())
         return number;
 
     throw ArgumentError("Incorrect argument");
@@ -46,25 +46,29 @@ template<class... Args>
 string format(string_view fmt, const Args&... args) {
     std::vector<string> str_args = convert(args...);
 
+    string fmted;
+    while (!fmt.empty()) {
+        size_t left = fmt.find('{');
+        size_t right = fmt.find('}');
 
+        if (right < left) {
+            throw BracesError("Unexpected right bracket");
+        }
+        if (left == right) {  // == npos
+            return fmted + string(fmt);
+        }
 
-    // size_t left = fmt.find('{');
-    // size_t right = fmt.find('}');
+        string_view inner = fmt.substr(left + 1, right - left - 1);
+        size_t idx = parse_brackets(inner);
+        if (idx >= str_args.size())
+            throw BracesError("Incorrect index");
 
-    // if (right < left) {
-    //     throw BracesError("Unexpected right bracket");
-    // }
-    // if (left == right) {  // == npos
-    //     return string(fmt);
-    // }
+        fmted += string(fmt.substr(0, left)) + str_args[idx];
 
-    // string_view brackets = fmt.substr(left, right - left);
-    // size_t num = parse_brackets(brackets);
+        fmt.remove_prefix(right + 1);
+    }
 
-    // string fmted = string(fmt.substr(0, left));
-
-
-    // return fmted;
+    return fmted;
 }
 
 #endif  // FORMAT_H

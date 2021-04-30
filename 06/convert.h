@@ -1,9 +1,11 @@
 #ifndef CONVERT_H
 #define CONVERT_H
 
+#include <vector>
 #include <string>
 #include <string_view>
 #include <concepts>
+#include <sstream>
 
 template<class T>
 concept ToStringAble = requires(T x) {
@@ -13,18 +15,21 @@ concept ToStringAble = requires(T x) {
 template<class T>
 concept Convertible = ToStringAble<T> || std::is_convertible_v<T, std::string_view>;
 
-std::vector<std::string> convert();
-
+template<class... Args>
 std::vector<std::string> convert() {
     return {};
 }
 
-template<typename T> requires Convertible<T>
+template<class T> requires Convertible<T>
 std::vector<std::string> convert(const T& arg) {
     if constexpr (std::is_convertible_v<T, std::string_view>) {
-        return std::vector<std::string>{string(arg)};
-    } else {
+        return std::vector<std::string>{std::string(arg)};
+    } else if constexpr (std::is_integral_v<T>) {
         return std::vector<std::string>{std::to_string(arg)};
+    } else {
+        std::ostringstream os;
+        os << arg;
+        return std::vector<std::string>{std::string(os.str())};
     }
 }
 
