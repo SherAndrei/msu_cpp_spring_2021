@@ -12,10 +12,13 @@ UTILS_DIR = ./../utils/
 all: test.out
 	./test.out
 
-test.out: test.o
+test.out: test.o formatter.o
 	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
 
-test.o: test.cpp format.h formaterr.h convert.h
+test.o: test.cpp format.h formatter.h 
+	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
+
+formatter.o: formatter.cpp formatter.h formaterror.h convert.h
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
 
 .PHONY: clean debug release

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "format.h"
+#include "formaterror.h"
 #include "test_runner.h"
 
 void TestConvert();
