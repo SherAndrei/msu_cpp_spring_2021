@@ -221,7 +221,15 @@ void TestPushBack() {
 }
 
 void TestEmplaceBack() {
+    {
+        Vector<std::string> v;
+        for (int i = 0; i < 10; i++)
+            v.emplace_back(long_sv);
 
+        ASSERT_EQUAL(v.size(), 10ul);
+        for (auto&& str : v)
+            ASSERT_EQUAL(str, long_sv);
+    }
 }
 
 void TestReserve() {
@@ -247,6 +255,15 @@ void TestReserve() {
         ASSERT_EQUAL(Counter::ctor_calls, 4ul);
         ASSERT_EQUAL(Counter::dtor_calls, 4ul);
         ASSERT_EQUAL(Counter::move_ctor_calls, 4ul);
+        Counter::clear();
+
+        Vector<Counter> smarter_counters;
+        smarter_counters.reserve(4);
+        for (int i = 0; i < 4; i++)
+            smarter_counters.emplace_back();
+        ASSERT_EQUAL(Counter::ctor_calls, 4ul);
+        ASSERT_EQUAL(Counter::dtor_calls, 0ul);
+        ASSERT_EQUAL(Counter::move_ctor_calls, 0ul);
     }
     Counter::clear();
 }
@@ -294,9 +311,12 @@ int main() {
     RUN_TEST(tr, TestCopyConstruction);
     RUN_TEST(tr, TestMoveConstruction);
     RUN_TEST(tr, TestInitializerList);
+
     RUN_TEST(tr, TestPushBack);
     RUN_TEST(tr, TestEmplaceBack);
+
     RUN_TEST(tr, TestReserve);
     RUN_TEST(tr, TestResize);
+
     RUN_TEST(tr, TestComparison);
 }

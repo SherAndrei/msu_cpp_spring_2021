@@ -141,6 +141,15 @@ void Vector<T, Alloc>::pop_back() noexcept {
     alloc::destroy(begin() + _size--);
 }
 
+template<typename T, typename Alloc>
+template<class... Args>
+Vector<T, Alloc>::reference
+Vector<T, Alloc>::emplace_back(Args&&... args) {
+    if (_size >= _capacity) reserve(2 * _capacity + 1);
+    alloc::construct(begin() + _size++, std::forward<Args>(args)...);
+    return back();
+}
+
 
 template<typename T, typename Alloc>
 inline bool operator==(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
