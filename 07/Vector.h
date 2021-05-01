@@ -72,8 +72,16 @@ class Vector {
  public:
     void swap(Vector& other) noexcept;
 
+    void reserve(size_type new_cap);
+    void resize(size_type count);
+    void resize(size_type count, const value_type& value);
+
     void push_back(value_type value);
     void pop_back() noexcept;
+
+    template<class... Args>
+    reference emplace_back(Args&&... args);
+
 
  private:
     void expand_if_needed();
