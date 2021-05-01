@@ -7,7 +7,7 @@
 #include "Allocator.h"
 #include "Iterator.h"
 
-template <typename T, typename Alloc = Allocator<T>>
+template <typename T, typename Alloc = alloc::Allocator<T>>
 class Vector {
  public:
     using value_type = T;
@@ -18,8 +18,8 @@ class Vector {
     using reference = value_type&;
     using const_reference = const value_type&;
 
-    using pointer = std::allocator_traits<Allocator<T>>::pointer;
-    using const_pointer = std::allocator_traits<Allocator<T>>::const_pointer;
+    using pointer = std::allocator_traits<allocator_type>::pointer;
+    using const_pointer = std::allocator_traits<allocator_type>::const_pointer;
 
     using iterator = T*;
     using const_iterator = const T*;
@@ -27,11 +27,11 @@ class Vector {
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
  public:
-    explicit Vector(const Alloc& alloc = Allocator<T>());
-    explicit Vector(size_t size, const Alloc& alc = Allocator<T>());
-    Vector(size_t size, const T& default_value, const Alloc& alloc = Allocator<T>());
+    explicit Vector(const Alloc& alloc = alloc::Allocator<T>());
+    explicit Vector(size_t size, const Alloc& alc = alloc::Allocator<T>());
+    Vector(size_t size, const T& default_value, const Alloc& alloc = alloc::Allocator<T>());
 
-    Vector(std::initializer_list<T> list, const Alloc& alloc = Allocator<T>());
+    Vector(std::initializer_list<T> list, const Alloc& alloc = alloc::Allocator<T>());
     Vector& operator=(std::initializer_list<T> list);
 
     Vector(const Vector& other);
@@ -71,10 +71,10 @@ class Vector {
 
  public:
     void swap(Vector& other) noexcept;
+    void clear() noexcept;
 
     void reserve(size_type new_cap);
     void resize(size_type count);
-    void resize(size_type count, const value_type& value);
 
     void push_back(value_type value);
     void pop_back() noexcept;

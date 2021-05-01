@@ -7,9 +7,10 @@ void TestCopyConstruction();
 void TestInitializerList();
 void TestMoveConstruction();
 
-void TestReserve();
 void TestPushBack();
 void TestComparison();
+void TestReserve();
+void TestResize();
 
 struct Counter {
     static inline size_t ctor_calls = 0;
@@ -239,10 +240,9 @@ void TestReserve() {
         ASSERT_EQUAL(Counter::ctor_calls, 4ul);
         ASSERT_EQUAL(Counter::dtor_calls, 4ul);
         ASSERT_EQUAL(Counter::move_op_calls, 4ul);
-        Counter::clear();
     }
+    Counter::clear();
 }
-
 
 void TestComparison() {
     ASSERT(Vector<int>({})        == Vector<int>({}));
@@ -251,6 +251,34 @@ void TestComparison() {
     ASSERT(Vector<int>({0, 1, 2}) >= Vector<int>({0, 1, 2}));
     ASSERT(Vector<int>({2, 1})    >  Vector<int>({0, 1, 2}));
     ASSERT(Vector<int>({0, 1, 2}) <  Vector<int>({2, 1}));
+}
+
+void TestResize() {
+    {
+        Vector<Counter> counters(5);
+        ASSERT_EQUAL(counters.size(), 5ul);
+        ASSERT_EQUAL(counters.capacity(), 5ul);
+
+        counters.resize(3);
+        ASSERT_EQUAL(Counter::dtor_calls, 2ul);
+        ASSERT_EQUAL(counters.size(), 3ul);
+        ASSERT_EQUAL(counters.capacity(), 5ul);
+        Counter::clear();
+
+        counters.resize(4);
+        ASSERT_EQUAL(Counter::ctor_calls, 1ul);
+        ASSERT_EQUAL(Counter::dtor_calls, 0ul);
+        ASSERT_EQUAL(counters.size(), 4ul);
+        ASSERT_EQUAL(counters.capacity(), 5ul);
+        Counter::clear();
+
+        counters.resize(20);
+        ASSERT_EQUAL(Counter::ctor_calls, 16ul);
+        ASSERT_EQUAL(Counter::copy_op_calls, 0ul);
+        ASSERT_EQUAL(counters.size(), 20ul);
+        ASSERT_EQUAL(counters.capacity(), 20ul);
+    }
+    Counter::clear();
 }
 
 int main() {
@@ -262,4 +290,5 @@ int main() {
     RUN_TEST(tr, TestComparison);
     RUN_TEST(tr, TestPushBack);
     RUN_TEST(tr, TestReserve);
+    RUN_TEST(tr, TestResize);
 }

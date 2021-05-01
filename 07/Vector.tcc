@@ -14,7 +14,7 @@ Vector<T, Alloc>::Vector(const Alloc& alloc)
 
 template<typename T, typename Alloc>
 Vector<T, Alloc>::~Vector() noexcept {
-    destroy(begin(), end());
+    alloc::destroy(begin(), end());
     _alloc.deallocate(_begin, _size);
 }
 
@@ -23,7 +23,7 @@ Vector<T, Alloc>::Vector(size_t size, const Alloc& alloc)
     : _alloc(alloc)
     , _size(size), _capacity(size)
     , _begin(_alloc.allocate(size)) {
-    construct(begin(), end());
+    alloc::construct(begin(), end());
 }
 
 template<typename T, typename Alloc>
@@ -31,7 +31,7 @@ Vector<T, Alloc>::Vector(size_t size, const T& default_value, const Alloc& alloc
     : _alloc(alloc)
     , _size(size), _capacity(size)
     , _begin(_alloc.allocate(size)) {
-    construct(begin(), end(), default_value);
+    alloc::construct(begin(), end(), default_value);
 }
 
 template<typename T, typename Alloc>
@@ -40,7 +40,7 @@ Vector<T, Alloc>::Vector(std::initializer_list<T> ilist, const Alloc& alloc)
     , _size(ilist.size())
     , _capacity(ilist.size())
     , _begin(_alloc.allocate(_capacity)) {
-    construct_from(ilist.begin(), ilist.end(), begin());;
+    alloc::construct_from(ilist.begin(), ilist.end(), begin());;
 }
 
 template<typename T, typename Alloc>
@@ -55,7 +55,7 @@ Vector<T, Alloc>::Vector(const Vector& other)
     : _size(other._size)
     , _capacity(other._capacity)
     , _begin(_alloc.allocate(other._capacity)) {
-    construct_from(other.begin(), other.end(), begin());
+    alloc::construct_from(other.begin(), other.end(), begin());
 }
 
 template<typename T, typename Alloc>
@@ -91,10 +91,38 @@ void Vector<T, Alloc>::reserve(size_type new_cap) {
 }
 
 template<typename T, typename Alloc>
+void Vector<T, Alloc>::resize(size_type count) {
+    if (count == _size) return;
+
+    if (count < _size) {
+        alloc::destroy(begin() + count, end());
+        _size = count; return;
+    }
+
+    if (count <= _capacity) {
+        alloc::construct(end(), end() + (count - _size));
+        _size = count; return;
+    }
+
+    Vector temp;
+    temp._size = count;
+    temp.reserve(count);
+    std::ranges::move(*this, temp.begin());
+    alloc::construct(temp.begin() + _size, temp.end());
+    this->swap(temp);
+}
+
+template<typename T, typename Alloc>
 void Vector<T, Alloc>::swap(Vector& other) noexcept {
     std::swap(other._begin, _begin);
     std::swap(other._size, _size);
     std::swap(other._capacity, _capacity);
+}
+
+template<typename T, typename Alloc>
+void Vector<T, Alloc>::clear() noexcept {
+    alloc::destroy(begin(), end());
+    _size = 0ul;
 }
 
 template<typename T, typename Alloc>

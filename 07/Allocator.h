@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <exception>
 
+namespace alloc {
+
 template<typename T>
 class Allocator {
  public:
@@ -32,7 +34,6 @@ class Allocator {
     T* allocate(size_t n) {
         if (n > max_size())
             throw std::bad_alloc();
-        // std::cerr << "memory alloc of " << n << " * sizeof(T) = " << n *sizeof(T) << std::endl;
         return static_cast<T*>(::operator new(n * sizeof(T)));
     }
 
@@ -50,13 +51,11 @@ bool operator==(const Allocator<T>&, const Allocator<U>&) noexcept {
 
 template<class T, class... Args>
 auto construct(T* location, Args&&... args) {
-    // std::cerr << "single construct at " << (location) << std::endl;
     return ::new ((void*)location) T(std::forward<Args>(args)...);
 }
 
 template<class InputIt, class... Args>
 void construct(InputIt begin, InputIt end, Args&&... args) {
-    // std::cerr << "range construct between " << begin << " and " << end << std::endl;
     while (begin != end) construct(begin++, std::forward<Args>(args)...);
 }
 
@@ -67,14 +66,14 @@ void construct_from(InputIt begin, InputIt end, OutputIt to) {
 
 template <typename T>
 void destroy(T* location) {
-    // std::cerr << "single destroy at " << location << std::endl;
     location->~T();
 }
 
-template<class T>
-void destroy(T* begin, T* end) {
-    // std::cerr << "range destroy" << std::endl;
+template<class InputIt>
+void destroy(InputIt begin, InputIt end) {
     while (begin != end) destroy(begin++);
 }
+
+}  // namespace alloc
 
 #endif  // ALLOCATOR_H
