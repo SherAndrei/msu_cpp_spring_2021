@@ -5,16 +5,26 @@
 void TestConstruction();
 void TestCopyConstruction();
 void TestInitializerList();
+void TestMoveConstruction();
 
 void TestPushBack();
 void TestNoCopy();
 void TestComparison();
 
 struct Counter {
-    static inline int ctor_calls = 0;
-    static inline int dtor_calls = 0;
+    static inline size_t ctor_calls = 0;
+    static inline size_t dtor_calls = 0;
+    static inline size_t copy_ctor_calls = 0;
+    static inline size_t move_ctor_calls = 0;
+    static inline size_t copy_op_calls = 0;
+    static inline size_t move_op_calls = 0;
+
      Counter() { ctor_calls++; }
     ~Counter() { dtor_calls++; }
+    Counter(const Counter&)     { copy_ctor_calls++; }
+    Counter(Counter&&) noexcept { move_ctor_calls++; }
+    Counter& operator=(const Counter&)     { copy_op_calls++; return *this; }
+    Counter& operator=(Counter&&) noexcept { move_op_calls++; return *this; }
 };
 
 void TestConstruction() {
@@ -25,13 +35,13 @@ void TestConstruction() {
         ASSERT(empty.begin() == empty.end());
     }
     {
-        ASSERT_EQUAL(Counter::ctor_calls, 0);
-        ASSERT_EQUAL(Counter::dtor_calls, 0);
+        ASSERT_EQUAL(Counter::ctor_calls, 0ul);
+        ASSERT_EQUAL(Counter::dtor_calls, 0ul);
         {
             Vector<Counter> cvec(10);
         }
-        ASSERT_EQUAL(Counter::ctor_calls, 10);
-        ASSERT_EQUAL(Counter::dtor_calls, 10);
+        ASSERT_EQUAL(Counter::ctor_calls, 10ul);
+        ASSERT_EQUAL(Counter::dtor_calls, 10ul);
         Counter::ctor_calls = Counter::dtor_calls = 0;
     }
     {
@@ -61,10 +71,113 @@ void TestInitializerList() {
         for (int i = 0; i < 3; i++)
             ASSERT_EQUAL(ints[i], 2 - i);
     }
+    {
+        Vector<int> ints{};
+        ASSERT_EQUAL(ints.size(), 0ul);
+        ASSERT_EQUAL(ints.capacity(), 0ul);
+    }
+    {
+        Vector<Vector<int>> matrix = {
+            {0, 1, 2},
+            {3, 4, 5},
+            {6, 7, 8}
+        };
+        int i = 0;
+        for (auto&& row : matrix) {
+            ASSERT_EQUAL(row.size(), 3ul);
+            ASSERT(row == Vector<int>({i, i + 1, i + 2}));
+            i += 3;
+        }
+    }
 }
 
 void TestCopyConstruction() {
+    {
+        Vector<int> empty({});
+        Vector<int> full({1, 3, 5, 7, 9});
+        ASSERT_EQUAL(full.size(), 5ul);
+        full = empty;
+        ASSERT_EQUAL(full.size(), 0ul);
+    }
+    {
+        Vector<std::string> strings(5, "The quick brown fox jumps over the lazy dog");
+        Vector<std::string> another_strings(strings);
 
+        ASSERT_EQUAL(another_strings.size(), 5ul);
+        for (auto&& str : another_strings)
+            ASSERT_EQUAL(str, "The quick brown fox jumps over the lazy dog");
+
+        Vector<std::string> hellos(3, "hello");
+        another_strings = hellos;
+        ASSERT_EQUAL(another_strings.size(), 3ul);
+        for (auto&& str : another_strings)
+            ASSERT_EQUAL(str, "hello");
+    }
+    {
+        Vector<Counter> counters(10);
+        ASSERT_EQUAL(Counter::ctor_calls, 10ul);
+        Counter::ctor_calls = 0;
+
+        Vector<Counter> another_counters(counters);
+        ASSERT_EQUAL(Counter::ctor_calls, 0ul);
+        ASSERT_EQUAL(Counter::copy_ctor_calls, 10ul);
+        Counter::copy_ctor_calls = 0;
+
+        Vector<Counter> yet_another_counters(100);
+        ASSERT_EQUAL(Counter::ctor_calls, 100ul);
+
+        yet_another_counters = another_counters;
+        ASSERT_EQUAL(Counter::copy_ctor_calls, 10ul);
+        ASSERT_EQUAL(Counter::dtor_calls, 100ul);
+        Counter::dtor_calls = 0;
+    }
+    ASSERT_EQUAL(Counter::dtor_calls, 10ul + 10ul + 10ul);
+    Counter::dtor_calls = Counter::copy_ctor_calls = Counter::ctor_calls = 0;
+}
+
+void TestMoveConstruction() {
+    {
+        Vector<int> ints = {1, 2, 4, 5};
+        Vector<int> empty(std::move(ints));
+        ASSERT(ints == Vector<int>{});
+        ASSERT(empty == Vector<int>({1, 2, 4, 5}));
+    }
+    {
+        Vector<std::string> strings(5, "The quick brown fox jumps over the lazy dog");
+        Vector<std::string> another_strings(std::move(strings));
+
+        ASSERT(strings == Vector<std::string>{});
+        ASSERT_EQUAL(another_strings.size(), 5ul);
+        for (auto&& str : another_strings)
+            ASSERT_EQUAL(str, "The quick brown fox jumps over the lazy dog");
+
+        Vector<std::string> hellos(3, "hello");
+        another_strings = std::move(hellos);
+        ASSERT_EQUAL(another_strings.size(), 3ul);
+        for (auto&& str : another_strings)
+            ASSERT_EQUAL(str, "hello");
+        ASSERT(hellos == Vector<std::string>{});
+    }
+    {
+        Vector<Counter> counters(10);
+        ASSERT_EQUAL(Counter::ctor_calls, 10ul);
+        Counter::ctor_calls = 0;
+
+        Vector<Counter> another_counters(std::move(counters));
+        ASSERT_EQUAL(Counter::copy_ctor_calls, 0ul);
+        ASSERT_EQUAL(Counter::move_ctor_calls, 0ul);
+
+        Vector<Counter> yet_another_counters(100);
+        ASSERT_EQUAL(Counter::ctor_calls, 100ul);
+
+        yet_another_counters = std::move(another_counters);
+        ASSERT_EQUAL(Counter::dtor_calls, 100ul);
+        ASSERT_EQUAL(Counter::copy_ctor_calls, 0ul);
+        ASSERT_EQUAL(Counter::move_ctor_calls, 0ul);
+        Counter::dtor_calls = 0;
+    }
+    ASSERT_EQUAL(Counter::dtor_calls, 10ul);
+    Counter::dtor_calls = 0;
 }
 
 // void TestPushBack() {
@@ -120,9 +233,10 @@ void TestCopyConstruction() {
 int main() {
     TestRunner tr;
     RUN_TEST(tr, TestConstruction);
-    RUN_TEST(tr, TestCopyConstruction);
     RUN_TEST(tr, TestInitializerList);
-    // RUN_TEST(tr, TestPushBack);
+    RUN_TEST(tr, TestCopyConstruction);
+    RUN_TEST(tr, TestMoveConstruction);
     // RUN_TEST(tr, TestNoCopy);
+    // RUN_TEST(tr, TestPushBack);
     // RUN_TEST(tr, TestComparison);
 }

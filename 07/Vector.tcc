@@ -31,8 +31,7 @@ Vector<T, Alloc>::Vector(size_t size, const T& default_value, const Alloc& alloc
     : _alloc(alloc)
     , _size(size), _capacity(size)
     , _begin(_alloc.allocate(size)) {
-    iterator start = begin(), finish = end();
-    while (start != finish) construct(start++, default_value);
+    construct(begin(), end(), default_value);
 }
 
 template<typename T, typename Alloc>
@@ -41,7 +40,7 @@ Vector<T, Alloc>::Vector(std::initializer_list<T> ilist, const Alloc& alloc)
     , _size(ilist.size())
     , _capacity(ilist.size())
     , _begin(_alloc.allocate(_capacity)) {
-    std::ranges::copy(ilist, begin());
+    construct_from(ilist.begin(), ilist.end(), begin());;
 }
 
 template<typename T, typename Alloc>
@@ -51,39 +50,13 @@ Vector<T, Alloc>& Vector<T, Alloc>::operator=(std::initializer_list<T> ilist) {
     return *this;
 }
 
-// template<typename T, typename Alloc>
-// Vector<T, Alloc>::Vector(const Vector& other);
-//     Vector& operator =(const Vector& rhs);
-
-    // Vector(Vector&& other) noexcept;
-    // Vector& operator =(Vector&& rhs) noexcept;
-
-
-// template<class T>
-// Vector<T>::Vector(size_t size)
-//     : _size(size), _capacity(size)
-//     , _begin(std::make_unique<T[]>(size)) {}
-
-// template<class T>
-// Vector<T>::Vector(size_t size, const T& default_value)
-//     : _size(size), _capacity(size)
-//     , _begin(std::make_unique<T[]>(size)) {
-//     std::ranges::for_each(*this, [&](T& val) {
-//         val = default_value;
-//     });
-// }
-
-// template<class T>
-// Vector<T>::Vector(std::initializer_list<T> list) {
-//     std::ranges::copy(list, begin());
-// }
-
-// template<class T>
-// Vector<T>::Vector(const Vector& other)
-//     : _size(other._size), _capacity(other._capacity)
-//     , _begin(std::make_unique<T[]>(other._capacity)) {
-//         std::ranges::copy(other, begin());
-// }
+template<typename T, typename Alloc>
+Vector<T, Alloc>::Vector(const Vector& other)
+    : _size(other._size)
+    , _capacity(other._capacity)
+    , _begin(_alloc.allocate(other._capacity)) {
+    construct_from(other.begin(), other.end(), begin());
+}
 
 template<typename T, typename Alloc>
 Vector<T, Alloc>& Vector<T, Alloc>::operator =(const Vector& rhs) {
@@ -94,12 +67,17 @@ Vector<T, Alloc>& Vector<T, Alloc>::operator =(const Vector& rhs) {
     return *this;
 }
 
-// template<class T>
-// Vector<T>::Vector(Vector&& other) noexcept
-//     : _size(other._size), _capacity(other._capacity)
-//     , _begin(std::move(other._begin)) {
-//         other._capacity = other._size = 0u;
-// }
+template<typename T, typename Alloc>
+Vector<T, Alloc>::Vector(Vector&& other) noexcept {
+    this->swap(other);
+}
+
+template<typename T, typename Alloc>
+Vector<T, Alloc>& Vector<T, Alloc>::operator =(Vector&& rhs) noexcept {
+    Vector<T, Alloc> temp(std::move(rhs));
+    this->swap(temp);
+    return *this;
+}
 
 // template<class T>
 // Vector<T>& Vector<T>::operator =(Vector&& rhs) noexcept {

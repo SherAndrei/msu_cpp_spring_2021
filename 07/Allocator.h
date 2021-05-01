@@ -54,10 +54,15 @@ auto construct(T* location, Args&&... args) {
     return ::new ((void*)location) T(std::forward<Args>(args)...);
 }
 
-template<class T, class... Args>
-void construct(T* begin, T* end, Args&&... args) {
+template<class InputIt, class... Args>
+void construct(InputIt begin, InputIt end, Args&&... args) {
     // std::cerr << "range construct between " << begin << " and " << end << std::endl;
     while (begin != end) construct(begin++, std::forward<Args>(args)...);
+}
+
+template<class InputIt, class OutputIt>
+void construct_from(InputIt begin, InputIt end, OutputIt to) {
+    for (; begin != end; begin++, to++) construct(to, *begin);
 }
 
 template <typename T>
