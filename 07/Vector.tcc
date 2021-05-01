@@ -35,8 +35,21 @@ Vector<T, Alloc>::Vector(size_t size, const T& default_value, const Alloc& alloc
     while (start != finish) construct(start++, default_value);
 }
 
-    // Vector(std::initializer_list<T> list, const Alloc& alloc = Allocator());
-    // Vector& operator=(std::initializer_list<T> list);
+template<typename T, typename Alloc>
+Vector<T, Alloc>::Vector(std::initializer_list<T> ilist, const Alloc& alloc)
+    : _alloc(alloc)
+    , _size(ilist.size())
+    , _capacity(ilist.size())
+    , _begin(_alloc.allocate(_capacity)) {
+    std::ranges::copy(ilist, begin());
+}
+
+template<typename T, typename Alloc>
+Vector<T, Alloc>& Vector<T, Alloc>::operator=(std::initializer_list<T> ilist) {
+    Vector<T> tmp(ilist);
+    this->swap(tmp);
+    return *this;
+}
 
 // template<typename T, typename Alloc>
 // Vector<T, Alloc>::Vector(const Vector& other);
@@ -105,12 +118,12 @@ Vector<T, Alloc>& Vector<T, Alloc>::operator =(const Vector& rhs) {
 //     }
 // }
 
-// template<class T>
-// void Vector<T>::swap(Vector& other) noexcept {
-//     std::swap(other._begin, _begin);
-//     std::swap(other._size, _size);
-//     std::swap(other._capacity, _capacity);
-// }
+template<typename T, typename Alloc>
+void Vector<T, Alloc>::swap(Vector& other) noexcept {
+    std::swap(other._begin, _begin);
+    std::swap(other._size, _size);
+    std::swap(other._capacity, _capacity);
+}
 
 // template<class T>
 // void Vector<T>::push_back(T value) {
