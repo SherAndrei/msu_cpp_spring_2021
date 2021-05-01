@@ -4,13 +4,16 @@
 
 void TestConstruction();
 void TestCopyConstruction();
-void TestInitializerList();
 void TestMoveConstruction();
+void TestInitializerList();
 
 void TestPushBack();
-void TestComparison();
+void TestEmplaceBack();
+
 void TestReserve();
 void TestResize();
+
+void TestComparison();
 
 struct Counter {
     static inline size_t ctor_calls = 0;
@@ -217,6 +220,10 @@ void TestPushBack() {
     }
 }
 
+void TestEmplaceBack() {
+
+}
+
 void TestReserve() {
     {
         Vector<int> ints({});
@@ -230,7 +237,7 @@ void TestReserve() {
             counters.push_back(Counter());
         ASSERT_EQUAL(Counter::ctor_calls, 4ul);
         ASSERT_EQUAL(Counter::dtor_calls, 4ul);
-        ASSERT_EQUAL(Counter::move_op_calls, 8ul);
+        ASSERT_EQUAL(Counter::move_ctor_calls, 8ul);
         Counter::clear();
 
         Vector<Counter> smart_counters;
@@ -239,18 +246,9 @@ void TestReserve() {
             smart_counters.push_back(Counter());
         ASSERT_EQUAL(Counter::ctor_calls, 4ul);
         ASSERT_EQUAL(Counter::dtor_calls, 4ul);
-        ASSERT_EQUAL(Counter::move_op_calls, 4ul);
+        ASSERT_EQUAL(Counter::move_ctor_calls, 4ul);
     }
     Counter::clear();
-}
-
-void TestComparison() {
-    ASSERT(Vector<int>({})        == Vector<int>({}));
-    ASSERT(Vector<int>({0, 1, 2}) == Vector<int>({0, 1, 2}));
-    ASSERT(Vector<int>({0, 1, 2}) <= Vector<int>({0, 1, 2}));
-    ASSERT(Vector<int>({0, 1, 2}) >= Vector<int>({0, 1, 2}));
-    ASSERT(Vector<int>({2, 1})    >  Vector<int>({0, 1, 2}));
-    ASSERT(Vector<int>({0, 1, 2}) <  Vector<int>({2, 1}));
 }
 
 void TestResize() {
@@ -281,14 +279,24 @@ void TestResize() {
     Counter::clear();
 }
 
+void TestComparison() {
+    ASSERT(Vector<int>({})        == Vector<int>({}));
+    ASSERT(Vector<int>({0, 1, 2}) == Vector<int>({0, 1, 2}));
+    ASSERT(Vector<int>({0, 1, 2}) <= Vector<int>({0, 1, 2}));
+    ASSERT(Vector<int>({0, 1, 2}) >= Vector<int>({0, 1, 2}));
+    ASSERT(Vector<int>({2, 1})    >  Vector<int>({0, 1, 2}));
+    ASSERT(Vector<int>({0, 1, 2}) <  Vector<int>({2, 1}));
+}
+
 int main() {
     TestRunner tr;
     RUN_TEST(tr, TestConstruction);
-    RUN_TEST(tr, TestInitializerList);
     RUN_TEST(tr, TestCopyConstruction);
     RUN_TEST(tr, TestMoveConstruction);
-    RUN_TEST(tr, TestComparison);
+    RUN_TEST(tr, TestInitializerList);
     RUN_TEST(tr, TestPushBack);
+    RUN_TEST(tr, TestEmplaceBack);
     RUN_TEST(tr, TestReserve);
     RUN_TEST(tr, TestResize);
+    RUN_TEST(tr, TestComparison);
 }

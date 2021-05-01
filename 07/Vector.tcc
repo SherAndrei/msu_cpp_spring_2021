@@ -84,7 +84,11 @@ void Vector<T, Alloc>::reserve(size_type new_cap) {
     if (_capacity >= new_cap) return;
 
     auto new_begin = _alloc.allocate(new_cap);
-    std::ranges::move(*this, new_begin);
+    alloc::construct_from(
+        std::make_move_iterator(begin()),
+        std::make_move_iterator(end()),
+        new_begin
+    );
     _alloc.deallocate(_begin, _capacity);
     _begin    = new_begin;
     _capacity = new_cap;
@@ -127,16 +131,15 @@ void Vector<T, Alloc>::clear() noexcept {
 
 template<typename T, typename Alloc>
 void Vector<T, Alloc>::push_back(T value) {
-    if (_size >= _capacity)
-        reserve(2 * _capacity + 1);
-    _begin[_size++] = std::move(value);
+    if (_size >= _capacity) reserve(2 * _capacity + 1);
+    alloc::construct(begin() + _size++, std::move(value));
 }
 
-// template<class T>
-// void Vector<T>::pop_back() noexcept {
-//     if (empty()) return;
-//     _size--;
-// }
+template<typename T, typename Alloc>
+void Vector<T, Alloc>::pop_back() noexcept {
+    if (empty()) return;
+    alloc::destroy(begin() + _size--);
+}
 
 
 template<typename T, typename Alloc>
