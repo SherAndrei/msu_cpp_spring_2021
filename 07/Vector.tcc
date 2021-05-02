@@ -15,7 +15,7 @@ Vector<T, Alloc>::Vector(const Alloc& alloc)
 template<typename T, typename Alloc>
 Vector<T, Alloc>::~Vector() noexcept {
     alloc::destroy(begin(), end());
-    _alloc.deallocate(_begin, _size);
+    _alloc.deallocate(_begin, _capacity);
 }
 
 template<typename T, typename Alloc>

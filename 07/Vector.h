@@ -2,7 +2,6 @@
 #define VECTOR_H
 
 #include <memory>
-#include <iterator>
 
 #include "Allocator.h"
 #include "Iterator.h"
@@ -21,8 +20,8 @@ class Vector {
     using pointer = std::allocator_traits<allocator_type>::pointer;
     using const_pointer = std::allocator_traits<allocator_type>::const_pointer;
 
-    using iterator = T*;
-    using const_iterator = const T*;
+    using iterator = Iterator<T*>;
+    using const_iterator = const iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -46,10 +45,10 @@ class Vector {
     reference       operator[](size_t index)       noexcept { return _begin[index]; }
     const_reference operator[](size_t index) const noexcept { return _begin[index]; }
 
-    iterator       begin()       noexcept { return _begin; }
-    iterator       end()         noexcept { return _begin + _size; }
-    const_iterator begin() const noexcept { return _begin; }
-    const_iterator end()   const noexcept { return _begin + _size; }
+    iterator       begin()       noexcept { return iterator(_begin); }
+    iterator       end()         noexcept { return iterator(_begin + _size); }
+    const_iterator begin() const noexcept { return const_iterator(_begin); }
+    const_iterator end()   const noexcept { return const_iterator(_begin + _size); }
 
     reverse_iterator       rbegin()       noexcept { return std::make_reverse_iterator(end()); }
     reverse_iterator       rend()         noexcept { return std::make_reverse_iterator(begin()); }
@@ -81,10 +80,6 @@ class Vector {
 
     template<class... Args>
     reference emplace_back(Args&&... args);
-
-
- private:
-    void expand_if_needed();
 
  private:
     Alloc     _alloc;

@@ -204,6 +204,7 @@ void TestPushBack() {
             v.push_back(i);
             ASSERT(v.size() <= v.capacity());
         }
+        ASSERT_EQUAL(v.size(), 10ul);
         std::sort(v.begin(), v.end());
 
         const std::vector<int> expected = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

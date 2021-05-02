@@ -55,6 +55,11 @@ auto construct(T* location, Args&&... args) {
 }
 
 template<class InputIt, class... Args>
+auto construct(InputIt pos, Args&&... args) {
+    return construct(pos.base(), std::forward<Args>(args)...);
+}
+
+template<class InputIt, class... Args>
 void construct(InputIt begin, InputIt end, Args&&... args) {
     while (begin != end) construct(begin++, std::forward<Args>(args)...);
 }
@@ -64,9 +69,14 @@ void construct_from(InputIt begin, InputIt end, OutputIt to) {
     for (; begin != end; begin++, to++) construct(to, *begin);
 }
 
-template <typename T>
+template <class T>
 void destroy(T* location) {
     location->~T();
+}
+
+template <class InputIt>
+void destroy(InputIt pos) {
+    destroy(pos.base());
 }
 
 template<class InputIt>
