@@ -31,8 +31,10 @@ class ISerializer {
     virtual Error process(uint64_t&) = 0;
 };
 
-template<typename T, typename Serializer>
-concept Serializable = requires(T x, Serializer s) {
+class Serializer;
+
+template<typename T>
+concept Serializable = requires(T x, Serializer& s) {
     { x.serialize(s) } -> std::same_as<Error>;
 };
 
@@ -42,7 +44,7 @@ class Serializer : public ISerializer {
     explicit Serializer(std::ostream& out)
         : out_(out) {}
 
-    template<typename T> requires Serializable<T, Serializer>
+    template<typename T> requires Serializable<T>
     Error save(T& obj) {
         return obj.serialize(*this);
     }
@@ -54,8 +56,10 @@ class Serializer : public ISerializer {
     std::ostream& out_;
 };
 
-template<typename T, typename Deserializer>
-concept Deserializable = requires(T x, Deserializer s) {
+class Deserializer;
+
+template<typename T>
+concept Deserializable = requires(T x, Deserializer& s) {
     { x.deserialize(s) } -> std::same_as<Error>;
 };
 
@@ -64,7 +68,7 @@ class Deserializer : public ISerializer {
     explicit Deserializer(std::istream& in)
         : in_(in) {}
 
-    template<typename T> requires Deserializable<T, Deserializer>
+    template<typename T> requires Deserializable<T>
     Error load(T& obj) {
        return obj.deserialize(*this);
     }
