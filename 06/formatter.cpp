@@ -19,11 +19,12 @@ std::pair<size_t, size_t> Formatter::find_next_brackets(std::string_view sv) con
 
 size_t Formatter::parse_argument(std::string_view sv) const {
     std::string_view token = read_token(sv);
+    std::string_view next_token = read_token(sv);
 
     size_t number;
     auto [ptr, errc] = std::from_chars(token.begin(), token.end(), number);
 
-    if (is_end_of_token(*ptr) && errc == std::errc())
+    if (next_token.empty() && is_end_of_token(*ptr) && errc == std::errc())
         return number;
     throw ArgumentError("Invalid argument");
 }

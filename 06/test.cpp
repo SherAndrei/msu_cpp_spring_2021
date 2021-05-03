@@ -55,11 +55,12 @@ void TestInvalidArguments() {
     std::map<std::string_view, std::string_view> one_arg_test = {
         {"text with empty {} in brace", ""},
         {"text with only spaces {     } in brace", ""},
-        {"text with { 0tr0uble } in brace", "arg"},
-        {"text with { not-a-number } in brace", "arg"},
-        {"text with { 99999999999999999999999999999 } in brace", "arg"},
-        {"text with { -1 } in brace", "arg"},
-        {"text with { 3 } in brace", "arg"}
+        {"text with { 0tr0uble } in brace", "trash"},
+        {"text with { not-a-number } in brace", "not-a-num"},
+        {"text with { 99999999999999999999999999999 } in brace", "big num"},
+        {"text with { -1 } in brace", "neg num"},
+        {"text with { 3 } in brace", "out of range num"},
+        {"text with { 0 1 } in brace", "two nums"}
     };
 
     for (auto&& [str, arg] : one_arg_test) {
