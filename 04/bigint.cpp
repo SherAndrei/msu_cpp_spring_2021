@@ -50,12 +50,11 @@ BigInt::BigInt(std::string_view sv) {
         sv.remove_prefix(1);
     }
     while (!sv.empty()) {
-        size_t try_base = std::min(_BASE_NDIGITS_, sv.size());
-        Parse(sv.substr(sv.size() - try_base), blocks_);
-        sv.remove_suffix(try_base);
+        size_t min_size = std::min(_BASE_NDIGITS_, sv.size());
+        Parse(sv.substr(sv.size() - min_size), blocks_);
+        sv.remove_suffix(min_size);
     }
-    if (is_zero())
-        negative_ = false;
+    if (is_zero()) negative_ = false;
 
     remove_leading_zeros();
 }
@@ -72,9 +71,10 @@ namespace rng = std::ranges;
 
 std::string BigInt::to_string() const {
     std::string res;
+    res.reserve(blocks_.size() * _BASE_NDIGITS_);
     if (negative_) res += '-';
     bool add_zeros = false;
-    rng::for_each(rng::reverse_view(blocks_), [&] (Block bl) {
+    rng::for_each(rng::reverse_view(blocks_), [&res, &add_zeros] (Block bl) {
         res += bl.to_string(add_zeros);
         add_zeros = true;
     });
@@ -93,7 +93,7 @@ void BigInt::remove_leading_zeros() {
 }
 
 bool BigInt::is_zero() const {
-    return negative_ && blocks_.size() == 1 && blocks_[0].number == 0;
+    return blocks_.size() == 1 && blocks_[0].number == 0;
 }
 
 std::istream& operator>>(std::istream& is, BigInt& bnum) {
@@ -108,23 +108,23 @@ std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
 }
 
 bool operator < (const BigInt& lhs, const BigInt& rhs) {
-    return (rhs.negative_ <= lhs.negative_ &&
-            rng::lexicographical_compare(rng::reverse_view(lhs.blocks_),
-                rng::reverse_view(rhs.blocks_), [&] (Block lhsb, Block rhsb) {
-                    return (lhsb.number < rhsb.number) ^ lhs.negative_;
-                }));
+    return rhs.negative_ <= lhs.negative_ &&
+           rng::lexicographical_compare(
+               rng::reverse_view(lhs.blocks_),
+               rng::reverse_view(rhs.blocks_),
+               [&] (Block lhsb, Block rhsb) {
+                   return (lhsb.number < rhsb.number) ^ lhs.negative_;
+           });
 }
 
 bool operator == (const BigInt& lhs, const BigInt& rhs) {
-    return (lhs.negative_ == rhs.negative_ &&
-            rng::equal(lhs.blocks_, rhs.blocks_));
+    return std::tie(lhs.negative_, lhs.blocks_) == std::tie(rhs.negative_, rhs.blocks_);
 }
 
 BigInt BigInt::operator-() const {
     BigInt res{*this};
     res.negative_ ^= true;
-    if (res.is_zero())
-        res.negative_ = false;
+    if (res.is_zero()) res.negative_ = false;
     return res;
 }
 
@@ -143,22 +143,23 @@ BigInt& BigInt::operator+=(const BigInt& rhs) {
 
     block_type carry = 0;
 
-    auto add_block = [&] (block_type lhs, block_type rhs) {
-        Block sum(lhs + rhs + carry);
-        carry = sum.number / _BASE_;
-        sum.number %= _BASE_;
+    auto add_block = [&carry] (block_type lhs, block_type rhs) {
+        block_type sum = lhs + rhs + carry;
+        carry = sum / _BASE_;
+        sum %= _BASE_;
         return sum;
     };
 
     auto [min, max] = std::minmax({ blocks_.size(), rhs.blocks_.size() });
     for (size_t i = 0; i < min; i++)
-        Sum.blocks_.push_back(add_block(blocks_[i].number, rhs.blocks_[i].number));
+        Sum.blocks_.emplace_back(add_block(blocks_[i].number, rhs.blocks_[i].number));
 
     auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
     for (size_t i = min; i < max; i++)
-        Sum.blocks_.push_back(add_block(max_cont[i].number, 0));
+        Sum.blocks_.emplace_back(add_block(max_cont[i].number, 0));
 
-    Sum.blocks_.push_back(Block(carry));
+    Sum.blocks_.emplace_back(carry);
+
     Sum.remove_leading_zeros();
     this->swap(Sum);
     return *this;
@@ -175,13 +176,16 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
     auto& reduced = abs_greater ? rhs : *this;
     auto& subtracted = abs_greater ? *this : rhs;
 
-    BigInt Diff(reduced);
+    BigInt Diff;
+    Diff.negative_ = reduced.negative_;
+    Diff.blocks_.reserve(reduced.blocks_.size());
+
     if (abs_greater)
         Diff.negative_ ^= true;
 
     block_type debt = 0;
 
-    auto subtract_block = [&] (block_type lhs, block_type rhs) {
+    auto subtract_block = [&debt] (block_type lhs, block_type rhs) {
         if (lhs < debt + rhs) {
             lhs += _BASE_ - debt;
             debt = 1;
@@ -189,14 +193,14 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
             lhs -= debt;
             debt = 0;
         }
-        return Block(lhs - rhs);
+        return lhs - rhs;
     };
 
     for (size_t i = 0; i < subtracted.blocks_.size(); ++i)
-        Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number, subtracted.blocks_[i].number);
+        Diff.blocks_.emplace_back(subtract_block(reduced.blocks_[i].number, subtracted.blocks_[i].number));
 
     for (size_t i = subtracted.blocks_.size(); i < reduced.blocks_.size(); ++i)
-        Diff.blocks_[i] = subtract_block(reduced.blocks_[i].number, 0);
+        Diff.blocks_.emplace_back(subtract_block(reduced.blocks_[i].number, 0));
 
     Diff.remove_leading_zeros();
     this->swap(Diff);
@@ -205,7 +209,7 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
 BigInt& BigInt::operator*=(const BigInt& rhs) {
     BigInt Prod;
     Prod.negative_ = negative_ ^ rhs.negative_;
-    Prod.blocks_ = Vector<Block>(blocks_.size() + rhs.blocks_.size());
+    Prod.blocks_.resize(blocks_.size() + rhs.blocks_.size());
 
     for (size_t i = 0; i < blocks_.size(); ++i) {
         block_type carry = 0;
@@ -218,8 +222,7 @@ BigInt& BigInt::operator*=(const BigInt& rhs) {
         Prod.blocks_[i + rhs.blocks_.size()].number += carry;
     }
     Prod.remove_leading_zeros();
-    if (Prod.is_zero())
-        Prod.negative_ = false;
+    if (Prod.is_zero()) Prod.negative_ = false;
     this->swap(Prod);
     return *this;
 }
