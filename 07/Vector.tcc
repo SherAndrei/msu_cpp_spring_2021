@@ -109,8 +109,8 @@ void Vector<T, Alloc>::resize(size_type count) {
     }
 
     Vector temp;
-    temp._size = count;
     temp.reserve(count);
+    temp._size = count;
     std::ranges::move(*this, temp.begin());
     alloc::construct(temp.begin() + _size, temp.end());
     this->swap(temp);

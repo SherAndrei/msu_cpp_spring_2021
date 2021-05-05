@@ -271,6 +271,12 @@ void TestReserve() {
 
 void TestResize() {
     {
+        Vector<int> empty;
+        empty.resize(10);
+        ASSERT(empty.size() == 10ul);
+        ASSERT(empty.capacity() == 10ul);
+    }
+    {
         Vector<Counter> counters(5);
         ASSERT_EQUAL(counters.size(), 5ul);
         ASSERT_EQUAL(counters.capacity(), 5ul);
