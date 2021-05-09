@@ -1,7 +1,6 @@
 #ifndef SERIALIZE_H
 #define SERIALIZE_H
 
-#include <concepts>
 #include <iostream>
 #include <utility>
 
@@ -31,20 +30,13 @@ class ISerializer {
     virtual Error process(uint64_t&) = 0;
 };
 
-class Serializer;
-
-template<typename T>
-concept Serializable = requires(T x, Serializer& s) {
-    { x.serialize(s) } -> std::same_as<Error>;
-};
-
 class Serializer : public ISerializer {
     static constexpr char Separator = ' ';
  public:
     explicit Serializer(std::ostream& out)
         : out_(out) {}
 
-    template<typename T> requires Serializable<T>
+    template<typename T>
     Error save(T& obj) {
         return obj.serialize(*this);
     }
@@ -56,19 +48,12 @@ class Serializer : public ISerializer {
     std::ostream& out_;
 };
 
-class Deserializer;
-
-template<typename T>
-concept Deserializable = requires(T x, Deserializer& s) {
-    { x.deserialize(s) } -> std::same_as<Error>;
-};
-
 class Deserializer : public ISerializer {
  public:
     explicit Deserializer(std::istream& in)
         : in_(in) {}
 
-    template<typename T> requires Deserializable<T>
+    template<typename T>
     Error load(T& obj) {
        return obj.deserialize(*this);
     }

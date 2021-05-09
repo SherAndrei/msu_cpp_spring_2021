@@ -1,6 +1,6 @@
 #Compiler features
-CC      := g++-10
-CFLAGS :=  -std=c++20 -W  -Wall      -Werror         -pedantic \
+CC      := g++
+CFLAGS :=  -std=c++17 -W  -Wall      -Werror         -pedantic \
  		   -Wextra        -Wfloat-equal   -pedantic-errors \
  		   -Wcast-align   -Wpointer-arith -Wformat-security \
  		   -Wformat       -Wwrite-strings -Wcast-align \

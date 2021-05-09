@@ -1,5 +1,4 @@
 #include <sstream>
-#include <compare>
 
 #include "test_runner.h"
 #include "serialize.h"
@@ -32,8 +31,11 @@ struct SimpleData {
     Error deserialize(Deserializer& deserializer) {
         return deserializer(a, b);
     }
-    auto operator<=>(const SimpleData&) const = default;
+    friend bool operator==(SimpleData lhs, SimpleData rhs) {
+        return std::tie(lhs.a, lhs.b) == std::tie(rhs.a, rhs.b);
+    }
 };
+
 
 void testSimpleData() {
     doCorrectTest(SimpleData{ 1ull, true }, "1 true ");
@@ -57,7 +59,12 @@ struct VariousData {
     Error deserialize(Deserializer& deserializer) {
         return deserializer(a, b, c, d, e, f);
     }
-    auto operator<=>(const VariousData&) const = default;
+    friend bool operator==(VariousData lhs, VariousData rhs) {
+        return std::tie(lhs.a, lhs.b, lhs.c,
+                        lhs.d, lhs.e, lhs.f) ==
+               std::tie(rhs.a, rhs.b, rhs.c,
+                        rhs.d, rhs.e, rhs.f);
+    }
 };
 
 void testVariousData() {
@@ -78,7 +85,6 @@ struct IncorrectData {
     Error deserialize(Deserializer& deserializer) {
         return deserializer(a, b, c);
     }
-    auto operator<=>(const IncorrectData&) const = default;
 };
 
 void testCorruptedArchive() {
