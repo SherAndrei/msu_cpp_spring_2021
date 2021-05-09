@@ -4,23 +4,14 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include <concepts>
 #include <sstream>
-
-template<class T>
-concept ToStringAble = requires(T x) {
-    { std::to_string(x) } -> std::same_as<std::string>;
-};
-
-template<class T>
-concept Convertible = ToStringAble<T> || std::is_convertible_v<T, std::string_view>;
 
 template<class... Args>
 std::vector<std::string> convert() {
     return {};
 }
 
-template<class T> requires Convertible<T>
+template<class T>
 std::vector<std::string> convert(const T& arg) {
     if constexpr (std::is_convertible_v<T, std::string_view>) {
         return std::vector<std::string>{std::string(arg)};
@@ -33,7 +24,7 @@ std::vector<std::string> convert(const T& arg) {
     }
 }
 
-template<class T, class... Args> requires Convertible<T>
+template<class T, class... Args>
 std::vector<std::string> convert(const T& arg, const Args&... args) {
     std::vector<std::string> result = convert(arg);
     std::vector<std::string> remaining = convert(args...);
