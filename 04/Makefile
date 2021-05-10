@@ -11,11 +11,11 @@ UTILS_DIR = ./../utils/
 SVECTOR_DIR = ./../07/
 PROJECT_NAME = bigint
 
-all: test.out
-	./test.out
+all: test
 
-test.out: test.o $(PROJECT_NAME).o block.o
-	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
+test: test.o $(PROJECT_NAME).o block.o
+	$(CC) $^ -o $@.out $(CFLAGS) $(LDFLAGS)
+	./$@.out
 
 test.o: test.cpp $(PROJECT_NAME).o
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR) -I$(SVECTOR_DIR)
@@ -29,10 +29,10 @@ block.o: block.cpp block.h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test.out
+debug: test
 
 release: CFLAGS += -O3 -DRELEASE
-release: test.out
+release: test
 
 clean:
 	rm -f *.o *.a test.out

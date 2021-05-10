@@ -9,11 +9,11 @@ LDFLAGS := -fsanitize=address
 
 UTILS_DIR = ./../utils/
 
-all: test.out
-	./test.out
+all: test
 
-test.out: test.o formatter.o
-	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
+test: test.o formatter.o
+	$(CC) $^ -o $@.out $(CFLAGS) $(LDFLAGS)
+	./$@.out
 
 test.o: test.cpp format.h formatter.h 
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(UTILS_DIR)
@@ -24,10 +24,10 @@ formatter.o: formatter.cpp formatter.h formaterror.h convert.h
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test.out
+debug: test
 
 release: CFLAGS += -O3 -DRELEASE
-release: test.out
+release: test
 
 clean:
 	rm -f *.o *.a test.out
