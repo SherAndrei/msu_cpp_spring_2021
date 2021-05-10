@@ -1,4 +1,5 @@
 #include <charconv>
+#include <algorithm>
 
 #include "formatter.h"
 #include "formaterror.h"
@@ -8,10 +9,12 @@ std::pair<size_t, size_t> Formatter::find_next_brackets(std::string_view sv) con
     size_t left = sv.find('{');
     size_t right = sv.find('}');
 
-    if (right < left)
+    if ((right < left) ||
+        (right != sv.npos && left == sv.npos))
         throw BracketsError("Unexpected right bracket");
 
-    if (sv.substr(left + 1, right - left - 1).find('{') != sv.npos)
+    if ((sv.substr(left + 1, right - left - 1).find('{') != sv.npos) ||
+        (right == sv.npos && left != sv.npos))
         throw BracketsError("Unexpected left bracket");
 
     return {left, right};
@@ -29,10 +32,16 @@ size_t Formatter::parse_argument(std::string_view sv) const {
     throw ArgumentError("Invalid argument");
 }
 
-std::string Formatter::get_argument(size_t idx) const {
+std::string Formatter::get_argument(size_t idx) {
     if (idx >= args_.size())
         throw ArgumentError("Invalid index");
+    max_used_idx_ = std::max(max_used_idx_, idx);
     return args_[idx];
+}
+
+void Formatter::check_args_usage() const {
+    if (args_.size() != 0 && max_used_idx_ < args_.size() - 1)
+        throw ArgumentError("More arguments than used");
 }
 
 void Formatter::left_strip(std::string_view& sv) const {

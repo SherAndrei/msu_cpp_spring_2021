@@ -13,17 +13,17 @@ std::string format(std::string_view fmt, const Args&... args) {
 
     while (!fmt.empty()) {
         auto [left, right] = fmter.find_next_brackets(fmt);
-        if (left == right) {  // == npos
-            return fmted + std::string(fmt);
-        }
+        if (left == right)  // == npos
+            break;
 
         size_t idx = fmter.parse_argument(fmt.substr(left + 1, right - left - 1));
-
         fmted += std::string(fmt.substr(0, left)) + fmter.get_argument(idx);
+
         fmt.remove_prefix(right + 1);
     }
 
-    return fmted;
+    fmter.check_args_usage();
+    return fmted + std::string(fmt);
 }
 
 #endif  // FORMAT_H

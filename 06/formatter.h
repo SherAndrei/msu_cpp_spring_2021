@@ -16,7 +16,8 @@ class Formatter {
 
     std::pair<size_t, size_t> find_next_brackets(std::string_view sv) const;
     size_t parse_argument(std::string_view sv) const;
-    std::string get_argument(size_t idx) const;
+    std::string get_argument(size_t idx);
+    void check_args_usage() const;
 
  private:
     void left_strip(std::string_view& sv) const;
@@ -25,6 +26,7 @@ class Formatter {
 
  private:
     std::vector<std::string> args_;
+    size_t max_used_idx_ = 0ul;
 };
 
 #endif  // FORMATTER_H
