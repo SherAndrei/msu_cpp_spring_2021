@@ -6,19 +6,9 @@
 #include "formaterror.h"
 #include "test_runner.h"
 
-void TestConvert();
 void TestValid();
 void TestIncorrectBrackets();
 void TestInvalidArguments();
-
-void TestConvert() {
-    ASSERT_EQUAL(std::vector<std::string>({}), convert());
-    ASSERT_EQUAL(std::vector<std::string>({"1"}), convert(1));
-    ASSERT_EQUAL(std::vector<std::string>({"1", "2", "3"}), convert(1, 2, 3));
-    ASSERT_EQUAL(std::vector<std::string>({"1", "2", "3"}), convert("1", "2", "3"));
-    ASSERT_EQUAL(std::vector<std::string>({"abc", "2", "0"}), convert("abc", 2, false));
-}
-
 
 void TestValid() {
     ASSERT_EQUAL("", format(""));
@@ -136,7 +126,6 @@ void TestInvalidArguments() {
 
 int main() {
     TestRunner tr;
-    RUN_TEST(tr, TestConvert);
     RUN_TEST(tr, TestIncorrectBrackets);
     RUN_TEST(tr, TestInvalidArguments);
     RUN_TEST(tr, TestValid);

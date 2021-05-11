@@ -12,7 +12,7 @@ class Formatter {
  public:
     template<class... Args>
     explicit Formatter(const Args&... args)
-        : args_(convert(args...)) {}
+        : args_({ convert(args)... }) {}
 
     std::pair<size_t, size_t> find_next_brackets(std::string_view sv) const;
     size_t parse_argument(std::string_view sv) const;
@@ -25,7 +25,7 @@ class Formatter {
     bool is_end_of_token(char ch) const;
 
  private:
-    std::vector<std::string> args_;
+    const std::vector<std::string> args_;
     size_t max_used_idx_ = 0ul;
 };
 
