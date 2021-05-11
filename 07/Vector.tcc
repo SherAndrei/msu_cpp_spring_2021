@@ -138,7 +138,7 @@ void Vector<T, Alloc>::push_back(T value) {
 template<typename T, typename Alloc>
 void Vector<T, Alloc>::pop_back() noexcept {
     if (empty()) return;
-    alloc::destroy(begin() + _size--);
+    alloc::destroy(begin() + (--_size));
 }
 
 template<typename T, typename Alloc>
