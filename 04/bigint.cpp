@@ -59,6 +59,9 @@ BigInt::BigInt(std::string_view sv) {
     remove_leading_zeros();
 }
 
+BigInt::BigInt(bool neg, Vector<Block>&& blocks)
+    : negative_(neg), blocks_(std::move(blocks)) {}
+
 BigInt& BigInt::operator=(std::string_view sv) {
     return *this = BigInt(sv);
 }
@@ -138,8 +141,10 @@ BigInt& BigInt::operator+=(const BigInt& rhs) {
     if (negative_ != rhs.negative_)
         return *this -= (-rhs);
 
-    BigInt Sum;
-    Sum.negative_ = negative_;
+    auto [min, max] = std::minmax({ blocks_.size(), rhs.blocks_.size() });
+    auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
+
+    BigInt Sum(negative_, Vector<Block>(max + 1));
 
     block_type carry = 0;
 
@@ -147,18 +152,16 @@ BigInt& BigInt::operator+=(const BigInt& rhs) {
         block_type sum = lhs + rhs + carry;
         carry = sum / _BASE_;
         sum %= _BASE_;
-        return sum;
+        return Block(sum);
     };
 
-    auto [min, max] = std::minmax({ blocks_.size(), rhs.blocks_.size() });
     for (size_t i = 0; i < min; i++)
-        Sum.blocks_.emplace_back(add_block(blocks_[i].number, rhs.blocks_[i].number));
+        Sum.blocks_[i] = add_block(blocks_[i].number, rhs.blocks_[i].number);
 
-    auto& max_cont = (max == blocks_.size()) ? blocks_ : rhs.blocks_;
     for (size_t i = min; i < max; i++)
-        Sum.blocks_.emplace_back(add_block(max_cont[i].number, 0));
+        Sum.blocks_[i] = (add_block(max_cont[i].number, 0));
 
-    Sum.blocks_.emplace_back(carry);
+    Sum.blocks_.back() = Block(carry);
 
     Sum.remove_leading_zeros();
     this->swap(Sum);
@@ -176,9 +179,7 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
     auto& reduced = abs_greater ? rhs : *this;
     auto& subtracted = abs_greater ? *this : rhs;
 
-    BigInt Diff;
-    Diff.negative_ = reduced.negative_;
-    Diff.blocks_.reserve(reduced.blocks_.size());
+    BigInt Diff(reduced.negative_, Vector<Block>(reduced.blocks_.size()));
 
     if (abs_greater)
         Diff.negative_ ^= true;
@@ -193,23 +194,21 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
             lhs -= debt;
             debt = 0;
         }
-        return lhs - rhs;
+        return Block(lhs - rhs);
     };
 
     for (size_t i = 0; i < subtracted.blocks_.size(); ++i)
-        Diff.blocks_.emplace_back(subtract_block(reduced.blocks_[i].number, subtracted.blocks_[i].number));
+        Diff.blocks_[i] = (subtract_block(reduced.blocks_[i].number, subtracted.blocks_[i].number));
 
     for (size_t i = subtracted.blocks_.size(); i < reduced.blocks_.size(); ++i)
-        Diff.blocks_.emplace_back(subtract_block(reduced.blocks_[i].number, 0));
+        Diff.blocks_[i] = (subtract_block(reduced.blocks_[i].number, 0));
 
     Diff.remove_leading_zeros();
     this->swap(Diff);
     return *this;
 }
 BigInt& BigInt::operator*=(const BigInt& rhs) {
-    BigInt Prod;
-    Prod.negative_ = negative_ ^ rhs.negative_;
-    Prod.blocks_.resize(blocks_.size() + rhs.blocks_.size());
+    BigInt Prod(negative_ ^ rhs.negative_, Vector<Block>(blocks_.size() + rhs.blocks_.size()));
 
     for (size_t i = 0; i < blocks_.size(); ++i) {
         block_type carry = 0;

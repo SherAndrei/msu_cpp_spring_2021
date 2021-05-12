@@ -38,7 +38,7 @@ void TestIOstream() {
     for (auto&& str : testStrArr) {
         std::string strn = std::string(str);
         std::istringstream is(strn);
-        BigInt bint;
+        BigInt bint = 0;
         is >> bint;
         ASSERT_EQUAL(bint.to_string(), str);
         std::ostringstream os;
@@ -90,14 +90,12 @@ void TestMove() {
     {
         BigInt lvalue(llu_lim::max());
         BigInt newvalue(std::move(lvalue));
-        ASSERT_EQUAL(lvalue, BigInt());
         ASSERT_EQUAL(newvalue, llu_lim::max());
     }
     {
         BigInt lvalue(llu_lim::max());
         BigInt newvalue(2);
         newvalue = std::move(lvalue);
-        ASSERT_EQUAL(lvalue, BigInt());
         ASSERT_EQUAL(newvalue, llu_lim::max());
     }
 }
@@ -194,7 +192,7 @@ namespace {
     }
 
     BigInt fibonacci(const BigInt& num) {
-        BigInt a(0), b(1), c, i;
+        BigInt a = 0, b = 1, c = 0, i = 0;
         if (num == 0)
             return a;
         for (i = 2; i <= num; ++i) {

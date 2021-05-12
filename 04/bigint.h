@@ -12,12 +12,10 @@
 
 class BigInt {
  public:
-    BigInt() = default;
-
-    explicit BigInt(std::string_view sv);
+    BigInt(std::string_view sv);
     BigInt& operator=(std::string_view sv);
 
-    explicit BigInt(std::integral auto num);
+    BigInt(std::integral auto num);
     BigInt& operator=(std::integral auto num);
 
  public:
@@ -47,6 +45,7 @@ class BigInt {
     BigInt& operator*=(std::integral auto num) { return *this *= BigInt(num); }
 
  private:
+    BigInt(bool neg, Vector<Block>&& blocks);
     void remove_leading_zeros();
     bool is_zero() const;
 
