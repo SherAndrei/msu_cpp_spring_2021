@@ -11,7 +11,7 @@
 #include <condition_variable>
 #include <atomic>
 
-class ThreadPool {
+class ThreadPool final {
  public:
     explicit ThreadPool(unsigned size);
 
@@ -21,7 +21,7 @@ class ThreadPool {
     ThreadPool(ThreadPool&&) = delete;
     ThreadPool& operator=(ThreadPool&&) = delete;
 
-    ~ThreadPool();
+    ~ThreadPool() noexcept;
 
  public:
     template <class Func, class... Args>

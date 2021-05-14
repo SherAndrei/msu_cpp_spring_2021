@@ -36,8 +36,8 @@ auto ThreadPool::exec(Func func, Args&&... args) -> std::future<decltype(func(ar
 }
 
 void ThreadPool::wait() {
-    std::function<void()> task;
     while (true) {
+        std::function<void()> task;
         {
             std::unique_lock lk(tasks_mutex_);
             cond_.wait(lk, [this] { 
