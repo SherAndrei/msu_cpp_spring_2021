@@ -1,8 +1,6 @@
 #ifndef BIGINT_H
 #define BIGINT_H
 
-#include <concepts>
-#include <compare>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -10,22 +8,27 @@
 #include "Vector.h"
 #include "block.h"
 
-class BigInt {
+class BigInt final {
  public:
     BigInt(std::string_view sv);
     BigInt& operator=(std::string_view sv);
 
-    BigInt(std::integral auto num);
-    BigInt& operator=(std::integral auto num);
+    template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+    BigInt(integral num) { *this = BigInt(std::to_string(num)); }
+    template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+    BigInt& operator=(integral num) { return *this = BigInt(num); }
 
  public:
     std::string to_string() const;
-    void swap(BigInt&);
+    void swap(BigInt&) noexcept;
 
  public:
-    friend bool operator  <(const BigInt& lhs, const BigInt& rhs);
-    friend bool operator ==(const BigInt& lhs, const BigInt& rhs);
-    friend auto operator<=>(const BigInt& lhs, const BigInt& rhs) = default;
+    friend bool operator==(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator!=(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator <(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator >(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator<=(const BigInt& lhs, const BigInt& rhs);
+    friend bool operator>=(const BigInt& lhs, const BigInt& rhs);
 
     BigInt operator-() const;
 
@@ -40,14 +43,17 @@ class BigInt {
     BigInt& operator*=(const BigInt&);
 
  public:
-    BigInt& operator+=(std::integral auto num) { return *this += BigInt(num); }
-    BigInt& operator-=(std::integral auto num) { return *this -= BigInt(num); }
-    BigInt& operator*=(std::integral auto num) { return *this *= BigInt(num); }
+    template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+    BigInt& operator+=(integral num) { return *this += BigInt(num); }
+    template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+    BigInt& operator-=(integral num) { return *this -= BigInt(num); }
+    template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+    BigInt& operator*=(integral num) { return *this *= BigInt(num); }
 
  private:
-    BigInt(bool neg, Vector<Block>&& blocks);
+    BigInt(bool neg, Vector<Block>&& blocks) noexcept;
     void remove_leading_zeros();
-    bool is_zero() const;
+    bool is_zero() const noexcept;
 
  private:
     bool negative_ = false;
@@ -61,28 +67,44 @@ BigInt operator+(const BigInt& lhs, const BigInt& rhs);
 BigInt operator-(const BigInt& lhs, const BigInt& rhs);
 BigInt operator*(const BigInt& lhs, const BigInt& rhs);
 
-BigInt operator+(const BigInt& lhs, std::integral auto num) { return lhs + BigInt(num); }
-BigInt operator-(const BigInt& lhs, std::integral auto num) { return lhs - BigInt(num); }
-BigInt operator*(const BigInt& lhs, std::integral auto num) { return lhs * BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+BigInt operator+(const BigInt& lhs, integral num) { return lhs + BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+BigInt operator-(const BigInt& lhs, integral num) { return lhs - BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+BigInt operator*(const BigInt& lhs, integral num) { return lhs * BigInt(num); }
 
-BigInt operator+(std::integral auto num, const BigInt& rhs) { return BigInt(num) + rhs; }
-BigInt operator-(std::integral auto num, const BigInt& rhs) { return BigInt(num) - rhs; }
-BigInt operator*(std::integral auto num, const BigInt& rhs) { return BigInt(num) * rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+BigInt operator+(integral num, const BigInt& rhs) { return BigInt(num) + rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+BigInt operator-(integral num, const BigInt& rhs) { return BigInt(num) - rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+BigInt operator*(integral num, const BigInt& rhs) { return BigInt(num) * rhs; }
 
-bool operator  <(const BigInt& lhs, std::integral auto num) { return lhs   < BigInt(num); }
-bool operator ==(const BigInt& lhs, std::integral auto num) { return lhs  == BigInt(num); }
-auto operator<=>(const BigInt& lhs, std::integral auto num) { return lhs <=> BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator==(const BigInt& lhs, integral  num) { return lhs == BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator!=(const BigInt& lhs, integral num) { return lhs != BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator <(const BigInt& lhs, integral num) { return lhs  < BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator >(const BigInt& lhs, integral num) { return lhs  > BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator<=(const BigInt& lhs, integral num) { return lhs <= BigInt(num); }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator>=(const BigInt& lhs, integral num) { return lhs >= BigInt(num); }
 
-bool operator  <(std::integral auto num, const BigInt& rhs) { return BigInt(num)   < rhs; }
-bool operator ==(std::integral auto num, const BigInt& rhs) { return BigInt(num)  == rhs; }
-auto operator<=>(std::integral auto num, const BigInt& rhs) { return BigInt(num) <=> rhs; }
-
-BigInt::BigInt(std::integral auto num) {
-    *this = BigInt(std::to_string(num));
-}
-
-BigInt& BigInt::operator=(std::integral auto num) {
-    return *this = BigInt(num);
-}
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator==(integral num, const BigInt& rhs) { return BigInt(num) == rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator!=(integral num, const BigInt& rhs) { return BigInt(num) != rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator <(integral num, const BigInt& rhs) { return BigInt(num)  < rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator >(integral num, const BigInt& rhs) { return BigInt(num)  > rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator<=(integral num, const BigInt& rhs) { return BigInt(num) <= rhs; }
+template <typename integral, typename = std::enable_if_t<std::is_integral_v<integral>>>
+bool operator>=(integral num, const BigInt& rhs) { return BigInt(num) >= rhs; }
 
 #endif  // BIGINT_H

@@ -10,7 +10,8 @@ constexpr size_t _BASE_NDIGITS_ = 8;
 struct Block {
     block_type number;
 
-    auto operator<=>(const Block&) const = default;
+    bool operator==(const Block& rhs) const { return number == rhs.number; }
+    bool operator< (const Block& rhs) const { return number <  rhs.number; }
     std::string to_string(bool add_zeros = false) const;
 };
 

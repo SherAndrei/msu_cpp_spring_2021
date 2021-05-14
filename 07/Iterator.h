@@ -16,7 +16,6 @@ class Iterator : public std::iterator<
 
  public:
     using iterator_type     = Iter;
-    using iterator_concept  = typename std::iterator_traits<Iter>::iterator_concept;
     using iterator_category = typename std::iterator_traits<Iter>::iterator_category;
     using value_type        = typename std::iterator_traits<Iter>::value_type;
     using difference_type   = typename std::iterator_traits<Iter>::difference_type;
@@ -62,9 +61,29 @@ bool operator==(const Iterator<IteratorL>& lhs,
     { return lhs.base() == rhs.base(); }
 
 template<typename IteratorL, typename IteratorR>
-auto operator<=>(const Iterator<IteratorL>& lhs,
-                 const Iterator<IteratorR>& rhs)
-    { return lhs.base() <=> rhs.base(); }
+bool operator!=(const Iterator<IteratorL>& lhs,
+                const Iterator<IteratorR>& rhs)
+    { return !(lhs == rhs); }
+
+template<typename IteratorL, typename IteratorR>
+bool operator<(const Iterator<IteratorL>& lhs,
+                const Iterator<IteratorR>& rhs)
+    { return lhs.base() < rhs.base(); }
+
+template<typename IteratorL, typename IteratorR>
+bool operator>(const Iterator<IteratorL>& lhs,
+                const Iterator<IteratorR>& rhs)
+    { return rhs < lhs; }
+
+template<typename IteratorL, typename IteratorR>
+bool operator<=(const Iterator<IteratorL>& lhs,
+                const Iterator<IteratorR>& rhs)
+    { return !(lhs > rhs); }
+
+template<typename IteratorL, typename IteratorR>
+bool operator>=(const Iterator<IteratorL>& lhs,
+                const Iterator<IteratorR>& rhs)
+    { return !(lhs < rhs); }
 
 template<typename IteratorL, typename IteratorR>
 inline auto operator-(const Iterator<IteratorL>& lhs,

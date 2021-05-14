@@ -3,7 +3,6 @@
 #include <utility>
 #include <algorithm>
 #include <charconv>
-#include <ranges>
 
 #include "bigint.h"
 #include "biginterr.h"
@@ -59,7 +58,7 @@ BigInt::BigInt(std::string_view sv) {
     remove_leading_zeros();
 }
 
-BigInt::BigInt(bool neg, Vector<Block>&& blocks)
+BigInt::BigInt(bool neg, Vector<Block>&& blocks) noexcept
     : negative_(neg), blocks_(std::move(blocks)) {}
 
 BigInt& BigInt::operator=(std::string_view sv) {
@@ -70,22 +69,20 @@ BigInt operator+(const BigInt& lhs, const BigInt& rhs) { return BigInt(lhs) += r
 BigInt operator-(const BigInt& lhs, const BigInt& rhs) { return BigInt(lhs) -= rhs; }
 BigInt operator*(const BigInt& lhs, const BigInt& rhs) { return BigInt(lhs) *= rhs; }
 
-namespace rng = std::ranges;
-
 std::string BigInt::to_string() const {
     std::string res;
     res.reserve(blocks_.size() * _BASE_NDIGITS_);
     if (negative_) res += '-';
     bool add_zeros = false;
-    rng::for_each(rng::reverse_view(blocks_), [&res, &add_zeros] (Block bl) {
-        res += bl.to_string(add_zeros);
+    for (auto it = blocks_.rbegin(); it != blocks_.rend(); ++it) {
+        res += it->to_string(add_zeros);
         add_zeros = true;
-    });
+    }
 
     return res;
 }
 
-void BigInt::swap(BigInt& other) {
+void BigInt::swap(BigInt& other) noexcept {
     blocks_.swap(other.blocks_);
     std::swap(negative_, other.negative_);
 }
@@ -95,7 +92,7 @@ void BigInt::remove_leading_zeros() {
         blocks_.pop_back();
 }
 
-bool BigInt::is_zero() const {
+bool BigInt::is_zero() const noexcept {
     return blocks_.size() == 1 && blocks_[0].number == 0;
 }
 
@@ -112,9 +109,9 @@ std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
 
 bool operator < (const BigInt& lhs, const BigInt& rhs) {
     return rhs.negative_ <= lhs.negative_ &&
-           rng::lexicographical_compare(
-               rng::reverse_view(lhs.blocks_),
-               rng::reverse_view(rhs.blocks_),
+           std::lexicographical_compare(
+               lhs.blocks_.rbegin(), lhs.blocks_.rend(),
+               rhs.blocks_.rbegin(), rhs.blocks_.rend(),
                [&] (Block lhsb, Block rhsb) {
                    return (lhsb.number < rhsb.number) ^ lhs.negative_;
            });
@@ -123,6 +120,10 @@ bool operator < (const BigInt& lhs, const BigInt& rhs) {
 bool operator == (const BigInt& lhs, const BigInt& rhs) {
     return std::tie(lhs.negative_, lhs.blocks_) == std::tie(rhs.negative_, rhs.blocks_);
 }
+bool operator >  (const BigInt& lhs, const BigInt& rhs) { return   rhs <  lhs;  }
+bool operator != (const BigInt& lhs, const BigInt& rhs) { return !(lhs == rhs); }
+bool operator <= (const BigInt& lhs, const BigInt& rhs) { return !(lhs >  rhs); }
+bool operator >= (const BigInt& lhs, const BigInt& rhs) { return !(lhs <  rhs); }
 
 BigInt BigInt::operator-() const {
     BigInt res{*this};
@@ -152,7 +153,7 @@ BigInt& BigInt::operator+=(const BigInt& rhs) {
         block_type sum = lhs + rhs + carry;
         carry = sum / _BASE_;
         sum %= _BASE_;
-        return Block(sum);
+        return Block{sum};
     };
 
     for (size_t i = 0; i < min; i++)
@@ -161,7 +162,7 @@ BigInt& BigInt::operator+=(const BigInt& rhs) {
     for (size_t i = min; i < max; i++)
         Sum.blocks_[i] = (add_block(max_cont[i].number, 0));
 
-    Sum.blocks_.back() = Block(carry);
+    Sum.blocks_.back() = Block{carry};
 
     Sum.remove_leading_zeros();
     this->swap(Sum);
@@ -194,7 +195,7 @@ BigInt& BigInt::operator-=(const BigInt& rhs) {
             lhs -= debt;
             debt = 0;
         }
-        return Block(lhs - rhs);
+        return Block{lhs - rhs};
     };
 
     for (size_t i = 0; i < subtracted.blocks_.size(); ++i)

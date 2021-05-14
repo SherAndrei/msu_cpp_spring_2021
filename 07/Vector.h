@@ -17,11 +17,11 @@ class Vector {
     using reference = value_type&;
     using const_reference = const value_type&;
 
-    using pointer = std::allocator_traits<allocator_type>::pointer;
-    using const_pointer = std::allocator_traits<allocator_type>::const_pointer;
+    using pointer = typename std::allocator_traits<allocator_type>::pointer;
+    using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
 
-    using iterator = Iterator<T*>;
-    using const_iterator = const iterator;
+    using iterator = Iterator<value_type*>;
+    using const_iterator = Iterator<const value_type*>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -89,10 +89,31 @@ class Vector {
 };
 
 template<typename T, typename Alloc>
-inline bool operator==(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs);
-
+inline bool operator==(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
 template<typename T, typename Alloc>
-inline auto operator<=>(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs);
+inline bool operator!=(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
+    return !(lhs == rhs);
+}
+template<typename T, typename Alloc>
+inline bool operator< (const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
+    return std::lexicographical_compare(lhs.begin(), lhs.end(),
+                                        rhs.begin(), rhs.end());
+}
+template<typename T, typename Alloc>
+inline bool operator> (const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
+    return rhs < lhs;
+}
+template<typename T, typename Alloc>
+inline bool operator<=(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
+    return !(lhs > rhs);
+}
+template<typename T, typename Alloc>
+inline bool operator>=(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
+    return !(lhs < rhs);
+}
+
 
 #include "Vector.tcc"
 

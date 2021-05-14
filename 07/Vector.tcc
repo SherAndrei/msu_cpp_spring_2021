@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <utility>
 #include <algorithm>
-#include <ranges>
 
 #include "Vector.h"
 
@@ -45,7 +44,7 @@ Vector<T, Alloc>::Vector(std::initializer_list<T> ilist, const Alloc& alloc)
 
 template<typename T, typename Alloc>
 Vector<T, Alloc>& Vector<T, Alloc>::operator=(std::initializer_list<T> ilist) {
-    Vector<T> tmp(ilist);
+    Vector tmp(ilist);
     this->swap(tmp);
     return *this;
 }
@@ -111,7 +110,7 @@ void Vector<T, Alloc>::resize(size_type count) {
     Vector temp;
     temp.reserve(count);
     temp._size = count;
-    std::ranges::move(*this, temp.begin());
+    std::move(begin(), end(), temp.begin());
     alloc::construct(temp.begin() + _size, temp.end());
     this->swap(temp);
 }
@@ -143,23 +142,11 @@ void Vector<T, Alloc>::pop_back() noexcept {
 
 template<typename T, typename Alloc>
 template<class... Args>
-Vector<T, Alloc>::reference
+typename Vector<T, Alloc>::reference
 Vector<T, Alloc>::emplace_back(Args&&... args) {
     if (_size >= _capacity) reserve(2 * _capacity + 1);
     alloc::construct(begin() + _size++, std::forward<Args>(args)...);
     return back();
-}
-
-
-template<typename T, typename Alloc>
-inline bool operator==(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
-    return std::ranges::equal(lhs, rhs);
-}
-
-template<typename T, typename Alloc>
-inline auto operator<=>(const Vector<T, Alloc>& lhs, const Vector<T, Alloc>& rhs) {
-    return std::lexicographical_compare_three_way(lhs.begin(), lhs.end(),
-            rhs.begin(), rhs.end());
 }
 
 #endif  // VECTOR_TCC
