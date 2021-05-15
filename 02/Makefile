@@ -8,25 +8,28 @@ CFLAGS :=  -std=c++17 -W  -Wall      -Werror         -pedantic \
 LDFLAGS := -fsanitize=address
 
 TEST_RUNNER_DIR = ./../utils/
+PROJECT_NAME = parser
 
-test.out: test.o libparser.a
-	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) -L. -lparser
-	./$@
+all: test
 
-test.o: test.cpp libparser.a
+test: test.o lib$(PROJECT_NAME).a
+	$(CC) $^ -o $@.out $(CFLAGS) $(LDFLAGS) -L. -l$(PROJECT_NAME)
+	./$@.out
+
+test.o: test.cpp lib$(PROJECT_NAME).a
 	$(CC) -c $< -o $@ $(CFLAGS) -I$(TEST_RUNNER_DIR)
 
-libparser.a: parser.cpp parser.h
-	$(CC) -c $< -o parser.o $(CFLAGS)
-	ar rc $@ parser.o
+lib$(PROJECT_NAME).a: $(PROJECT_NAME).cpp $(PROJECT_NAME).h
+	$(CC) -c $< -o $(PROJECT_NAME).o $(CFLAGS)
+	ar rc $@ $(PROJECT_NAME).o
 
 .PHONY: clean debug release
 
 debug: CFLAGS += -g -O0 -DDEBUG
-debug: test.out
+debug: test
 
 release: CFLAGS += -O3 -DRELEASE
-release: test.out
+release: test
 
 clean:
 	rm -f *.o *.a test.out

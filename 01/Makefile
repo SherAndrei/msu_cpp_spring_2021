@@ -8,20 +8,27 @@ CFLAGS :=  -std=c++17 -W  -Wall      -Werror         -pedantic \
 LDFLAGS := -fsanitize=address
 
 TEST_RUNNER_DIR = ./../utils/
+PROJECT_NAME = allocator
 
-test: tests
-	./tests
+all: test
 
-tests: main.o allocator.o
-	$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS)
+test: main.o $(PROJECT_NAME).o
+	$(CC) $^ -o $@.out $(CFLAGS) $(LDFLAGS)
+	./$@.out
 
-main.o: main.cpp allocator.o
+main.o: main.cpp $(PROJECT_NAME).o
 	$(CC) -c $< -o $@ $(CFLAGS) -I $(TEST_RUNNER_DIR)
 
-allocator.o: allocator.cpp allocator.h
+$(PROJECT_NAME).o: $(PROJECT_NAME).cpp $(PROJECT_NAME).h
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-.PHONY: clean
+.PHONY: clean debug release
+
+debug: CFLAGS += -g -O0 -DDEBUG
+debug: test
+
+release: CFLAGS += -O3 -DRELEASE
+release: test
 
 clean:
-	rm *.o tests
+	rm -f *.o *.a test.out
