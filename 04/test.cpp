@@ -11,17 +11,6 @@
 #include "bigint.h"
 #include "biginterr.h"
 
-void TestIOstream();
-void TestBigIntComparison();
-void TestStringConstructor();
-void TestIntegerConctructor();
-void TestMove();
-void TestUnary();
-void TestSum();
-void TestSub();
-void TestMult();
-void TestUsage();
-
 namespace {
 
 inline const std::array<std::string_view, 13> testStrArr = {
@@ -33,8 +22,6 @@ inline const std::array<std::string_view, 13> testStrArr = {
     "10000000000000000000000000000000000000",
     "-10000000000000000000000000000000000000"
 };
-
-}  // namespace
 
 void TestIOstream() {
     for (auto&& str : testStrArr) {
@@ -88,20 +75,37 @@ void TestIntegerConctructor() {
 using ll_lim  = std::numeric_limits<long long>;
 using llu_lim = std::numeric_limits<long long unsigned>;
 
+void TestCopy() {
+    {
+        BigInt lvalue(llu_lim::max());
+        BigInt newvalue(lvalue);
+        ASSERT_EQUAL(lvalue, llu_lim::max());
+        ASSERT_EQUAL(newvalue, llu_lim::max());
+    }
+    {
+        BigInt lvalue(llu_lim::max());
+        BigInt newvalue(2);
+        newvalue = lvalue;
+        ASSERT_EQUAL(lvalue, llu_lim::max());
+        ASSERT_EQUAL(newvalue, llu_lim::max());
+    }
+}
+
 void TestMove() {
     {
         BigInt lvalue(llu_lim::max());
         BigInt newvalue(std::move(lvalue));
+        ASSERT_EQUAL(lvalue.to_string(), "");
         ASSERT_EQUAL(newvalue, llu_lim::max());
     }
     {
         BigInt lvalue(llu_lim::max());
         BigInt newvalue(2);
         newvalue = std::move(lvalue);
+        ASSERT_EQUAL(lvalue.to_string(), "");
         ASSERT_EQUAL(newvalue, llu_lim::max());
     }
 }
-
 
 void TestBigIntComparison() {
     using namespace std::literals::string_view_literals;
@@ -211,33 +215,32 @@ void TestMult() {
     ASSERT_EQUAL(BigInt("98765432100123456789") * BigInt(BigInt("98765432100123456789")),
                  BigInt("9754610577924096936222542295378750190521"));
 
-
     ASSERT_EQUAL(BigInt("10000000000000000000000000000") * 0, 0);
     ASSERT_EQUAL(BigInt("00000000000000000000000000001") * (-1), -1);
 }
 
-namespace {
-    BigInt factorial(const BigInt& num) {
-        return (num > 1) ? (num * factorial(num - 1)) : BigInt(1);
-    }
+BigInt factorial(const BigInt& num) {
+    return (num > 1) ? (num * factorial(num - 1)) : BigInt(1);
+}
 
-    BigInt fibonacci(const BigInt& num) {
-        BigInt a = 0, b = 1, c = 0, i = 0;
-        if (num == 0)
-            return a;
-        for (i = 2; i <= num; ++i) {
-            c = a + b;
-            a = b;
-            b = c;
-        }
-        return b;
+BigInt fibonacci(const BigInt& num) {
+    BigInt a = 0, b = 1, c = 0, i = 0;
+    if (num == 0)
+        return a;
+    for (i = 2; i <= num; ++i) {
+        c = a + b;
+        a = b;
+        b = c;
     }
-}  // namespace
+    return b;
+}
 
 void TestUsage() {
     ASSERT_EQUAL(BigInt("265252859812191058636308480000000"), factorial(BigInt(30)));
     ASSERT_EQUAL(BigInt("110560307156090817237632754212345"), fibonacci(BigInt(155)));
 }
+
+}  // namespace
 
 int main() {
     TestRunner tr;
@@ -245,6 +248,7 @@ int main() {
     RUN_TEST(tr, TestStringConstructor);
     RUN_TEST(tr, TestIntegerConctructor);
     RUN_TEST(tr, TestBigIntComparison);
+    RUN_TEST(tr, TestCopy);
     RUN_TEST(tr, TestMove);
     RUN_TEST(tr, TestUnary);
     RUN_TEST(tr, TestSum);
