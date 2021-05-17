@@ -31,7 +31,9 @@ class ISerializer {
 };
 
 class Serializer : public ISerializer {
+ public:
     static constexpr char Separator = ' ';
+
  public:
     explicit Serializer(std::ostream& out)
         : out_(out) {}

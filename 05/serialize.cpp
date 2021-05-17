@@ -30,5 +30,5 @@ Error Deserializer::process(bool& var) {
     return check_istream(in_ >> std::boolalpha >> var);
 }
 Error Deserializer::process(uint64_t& var) {
-    return check(in_ >> var);
+    return check_istream(in_ >> var);
 }
