@@ -1,6 +1,7 @@
 #include <iostream>
 #include <random>
 #include <algorithm>
+#include <array>
 
 #include "format.h"
 #include "formaterror.h"
