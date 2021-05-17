@@ -3,9 +3,7 @@
 #include "test_runner.h"
 #include "serialize.h"
 
-void testSimpleData();
-void testVariousData();
-void testCorruptedArchive();
+namespace {
 
 template<typename Data>
 void doCorrectTest(Data&& data, const std::string& s) {
@@ -87,6 +85,47 @@ struct IncorrectData {
     }
 };
 
+template<typename Data>
+void doCorruptedTest(const std::vector<std::string>& corruptv) {
+    for (auto&& corrupted_data : corruptv) {
+        std::stringstream ss(corrupted_data);
+        Deserializer ds(ss);
+        Data sd;
+        ASSERT(ds.load(sd) == Error::CorruptedArchive);
+    }
+}
+
+struct BooleanData {
+    bool a;
+
+    template <class Serializer>
+    Error serialize(Serializer& serializer) {
+        return serializer(a);
+    }
+    template <class Deserializer>
+    Error deserialize(Deserializer& deserializer) {
+        return deserializer(a);
+    }
+    friend bool operator==(BooleanData lhs, BooleanData rhs) {
+        return lhs.a == rhs.a;
+    }
+};
+
+void testBoolean() {
+    {
+        doCorrectTest(BooleanData{true}, "true ");
+        doCorrectTest(BooleanData{false}, "false ");
+    }
+    {
+        doCorruptedTest<BooleanData>(std::vector<std::string>({
+            "", " ",
+            "true", "false",  // no separator
+            "1 ", "0 ", "qweqr",
+            "0true", "true0", "atrue", "truea",
+            "TRUE", "FALSE", "trUe", "fAlse"
+        }));
+    }
+}
 void testCorruptedArchive() {
     for (auto&& corrupted_data : {"", "1", "true", "true 1",
             "1 1 1 1 1", "111111111111111111111111111111111 true",
@@ -110,5 +149,6 @@ int main() {
     TestRunner tr;
     RUN_TEST(tr, testSimpleData);
     RUN_TEST(tr, testVariousData);
+    RUN_TEST(tr, testBoolean);
     RUN_TEST(tr, testCorruptedArchive);
 }
