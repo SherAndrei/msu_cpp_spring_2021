@@ -1,3 +1,5 @@
+#include <string_view>
+
 #include "test_runner.h"
 #include "Vector.h"
 

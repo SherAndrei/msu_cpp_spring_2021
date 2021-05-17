@@ -5,6 +5,7 @@
 #include <string>
 #include <limits>
 #include <array>
+#include <string_view>
 
 #include "test_runner.h"
 #include "bigint.h"
