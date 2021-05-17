@@ -104,25 +104,43 @@ void TestMove() {
 
 
 void TestBigIntComparison() {
-    ASSERT_EQUAL(BigInt("42"), 42);
-    ASSERT_EQUAL(42, BigInt("42"));
-    ASSERT_EQUAL(BigInt("-42"), -42);
-    ASSERT_EQUAL(-42, BigInt("-42"));
-    ASSERT_EQUAL(BigInt("0"), BigInt("-0"));
-    ASSERT_EQUAL(BigInt("00000000000000000000000000000000000000000000000000000000000001"), BigInt("1"));
-    ASSERT_EQUAL(BigInt(llu_lim::max()),
-                 BigInt(std::to_string(llu_lim::max())));
+    using namespace std::literals::string_view_literals;
 
-    ASSERT(BigInt("98936913561937591991369175") != BigInt("-98936913561937591991369175"));
-    ASSERT(BigInt("100000000000000") < BigInt("1000000000000000"));
+    const std::vector<std::pair<BigInt, BigInt>> l_g_vec = {
+        {1, 3}, {"4"sv, 5}, {6, "7"sv}, {"8"sv, "9"sv},
+        {-3, -2}, {-5, "-4"sv}, {"-7"sv, -6}, {"-9"sv, "-8"sv},
+        {"100000000000000"sv, "1000000000000000"sv},
+        {"-98936913561937591991369175"sv, "98936913561937591991369175"sv},
+        {llu_lim::max(), "11111111111111111111111111111111"sv},
+        {"-11111111111111111111111111111111"sv, ll_lim::min()}
+    };
 
-    ASSERT(4  < BigInt(5));
-    ASSERT(BigInt(2)  < 3);
-    ASSERT(BigInt(-1) < 1);
-    ASSERT(BigInt(-3) < -2);
-    ASSERT(-5 < BigInt(-4));
-    ASSERT(llu_lim::max() < BigInt("11111111111111111111111111111111"));
-    ASSERT(BigInt("-11111111111111111111111111111111") < ll_lim::min());
+    for (auto&& [lhs, rhs] : l_g_vec) {
+        ASSERT(lhs <  rhs);
+        ASSERT(lhs <= rhs);
+        ASSERT(rhs >  lhs);
+        ASSERT(rhs >= lhs);
+        ASSERT(lhs != rhs);
+        ASSERT(rhs != lhs);
+    }
+
+    const std::vector<std::pair<BigInt, BigInt>> eq_vec = {
+        {0, "-0"sv}, {"-0"sv, "-0"sv}, {0, 0},
+        {"42"sv, 42}, {42, "42"sv},
+        {"-42"sv, -42}, {-42, "-42"sv},
+        {"000000000000000000000000000001"sv, "1"sv},
+        {llu_lim::max(), std::string_view(std::to_string(llu_lim::max()))},
+        {"111111111111111111111111111111"sv, "111111111111111111111111111111"sv},
+        {"-111111111111111111111111111111"sv, "-111111111111111111111111111111"sv},
+    };
+
+    for (auto&& [lhs, rhs] : eq_vec) {
+        ASSERT(lhs == rhs);
+        ASSERT(lhs <= rhs);
+        ASSERT(rhs <= lhs);
+        ASSERT(lhs >= rhs);
+        ASSERT(rhs >= lhs);
+    }
 }
 
 void TestUnary() {
@@ -183,6 +201,16 @@ void TestMult() {
 
     ASSERT_EQUAL(BigInt(ll_lim::max()) * 2 + 1, BigInt(llu_lim::max()));
     ASSERT_EQUAL(BigInt(llu_lim::max()) - BigInt(ll_lim::max()) * 2, 1);
+
+    ASSERT_EQUAL(BigInt("11111111111111111111111111111") * 2,
+                 BigInt("22222222222222222222222222222"));
+
+    ASSERT_EQUAL(BigInt("10000000000000000001") * BigInt(llu_lim::max()),
+                 BigInt("10000000000000000000") * BigInt(llu_lim::max()) + BigInt(llu_lim::max()));
+
+    ASSERT_EQUAL(BigInt("98765432100123456789") * BigInt(BigInt("98765432100123456789")),
+                 BigInt("9754610577924096936222542295378750190521"));
+
 
     ASSERT_EQUAL(BigInt("10000000000000000000000000000") * 0, 0);
     ASSERT_EQUAL(BigInt("00000000000000000000000000001") * (-1), -1);

@@ -11,6 +11,7 @@ struct Block {
     block_type number;
 
     bool operator==(const Block& rhs) const { return number == rhs.number; }
+    bool operator!=(const Block& rhs) const { return number != rhs.number; }
     bool operator< (const Block& rhs) const { return number <  rhs.number; }
     std::string to_string(bool add_zeros = false) const;
 };

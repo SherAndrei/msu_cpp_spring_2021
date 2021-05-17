@@ -108,13 +108,16 @@ std::ostream& operator<<(std::ostream& os, const BigInt& bnum) {
 }
 
 bool operator < (const BigInt& lhs, const BigInt& rhs) {
-    return rhs.negative_ <= lhs.negative_ &&
-           std::lexicographical_compare(
-               lhs.blocks_.rbegin(), lhs.blocks_.rend(),
-               rhs.blocks_.rbegin(), rhs.blocks_.rend(),
-               [&] (Block lhsb, Block rhsb) {
-                   return (lhsb.number < rhsb.number) ^ lhs.negative_;
-           });
+    if (lhs.negative_ != rhs.negative_)
+        return rhs.negative_ < lhs.negative_;
+    for (auto l_it = lhs.blocks_.rbegin(), r_it = rhs.blocks_.rbegin();
+         l_it != lhs.blocks_.rend() && r_it != rhs.blocks_.rend();
+         ++l_it, ++r_it) {
+        if (*l_it != *r_it) {
+            return (*l_it < *r_it) ^ lhs.negative_;
+        }
+    }
+    return false;
 }
 
 bool operator == (const BigInt& lhs, const BigInt& rhs) {
