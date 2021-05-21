@@ -2,11 +2,14 @@
 #define EXTERNAL_SORT_H
 
 #include <fstream>
+#include <functional>
 #include <algorithm>
 #include <thread>
 #include <array>
 
 #include "extsorterr.h"
+
+inline constexpr size_t MEMORY_BOUNDARY = 8388608;
 
 template<class Compare>
 class Sorter {
@@ -27,7 +30,13 @@ class Sorter {
             throw FileError("Cannot open file");
         if (is_empty(input))
             return;
-        
+        std::vector<uint64_t> values;
+        uint64_t val;
+        while (input >> val)
+            values.push_back(val);
+        sort(values.begin(), values.end());
+        for (auto&& value : values)
+            output << value << ' ';
     }
 
  private:
