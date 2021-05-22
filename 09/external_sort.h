@@ -23,9 +23,7 @@ class Sorter {
         static inline const std::string dir_name = "__temp/";
 
         TempDirectory();
-#ifndef DEBUG
         ~TempDirectory();
-#endif
     };
 
  private:

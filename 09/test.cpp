@@ -4,8 +4,9 @@
 #include <string_view>
 
 #include "test_runner.h"
-#include "external_sort.h"
 #include "profile.h"
+
+#include "external_sort.h"
 
 namespace {
 

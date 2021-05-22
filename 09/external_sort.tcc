@@ -35,10 +35,9 @@ std::fstream Sorter<Cmp>::Worker::work() {
         {
             std::lock_guard lock{_ps->_input_mutex};
             _ps->_inp >> current;
-            if (!_ps->_inp)
-                break;
-            _chunk[curr_size++] = current;
+            if (!_ps->_inp) break;
         }
+        _chunk[curr_size++] = current;
         if (curr_size == CHUNK_SIZE) {
             sort_to_temp_file(curr_size);
             curr_size = 0;
@@ -133,7 +132,7 @@ template<class Cmp>
 void Sorter<Cmp>::external_sort() {
     if (is_empty(_inp))
         return;
-#if 0
+
     std::fstream left, right;
     {
         Worker w1{0, this, _comp};
@@ -146,15 +145,8 @@ void Sorter<Cmp>::external_sort() {
         inp_iter{right}, inp_iter{},
         out_iter{_out, " "}, _comp
     );
-#else
-    std::fstream file;
-    {
-        Worker w1{0, this, _comp};
-        file  = w1._f.get();
-    }
-    std::copy(inp_iter{file}, inp_iter{}, out_iter{_out, " "});
+
     _out.flush();
-#endif
 }
 
 template<class Cmp>
