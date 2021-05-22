@@ -2,6 +2,7 @@
 #define EXTERNAL_SORT_TCC
 
 #include <algorithm>
+#include <future>
 
 #include "external_sort.h"
 
@@ -15,8 +16,17 @@ Sorter<Cmp>::TempDirectory::~TempDirectory() {
 }
 
 template<class Cmp>
-Sorter<Cmp>::Worker::Worker(Sorter* s)
-    : _ps(s), _thread([this] {
+Sorter<Cmp>::Worker::Worker(Sorter* s, Cmp comp)
+    : _ps(s), _comp(comp) {
+        std::packaged_task<std::fstream()> task{
+            [this] { return this->work(); }
+        };
+        _f = task.get_future();
+        _thread = std::thread(std::move(task));
+}
+
+template<class Cmp>
+std::fstream Sorter<Cmp>::Worker::work() {
     _chunk = std::make_unique<uint64_t[]>(CHUNK_SIZE);
     uint64_t current;
     size_t curr_size = 0;
@@ -33,9 +43,8 @@ Sorter<Cmp>::Worker::Worker(Sorter* s)
 
     if (_temp_files.size() > 1)
         merge_temp_files();
-    else
-        std::copy_n(_chunk.get(), curr_size, out_iter{_ps->_out, " "});
-}) {}
+    return std::move(_temp_files.front());
+}
 
 template<class Cmp>
 Sorter<Cmp>::Worker::~Worker() {
@@ -44,7 +53,7 @@ Sorter<Cmp>::Worker::~Worker() {
 
 template<class Cmp>
 void Sorter<Cmp>::Worker::sort_to_temp_file(size_t curr_size) {
-    std::sort(_chunk.get(), _chunk.get() + curr_size, _ps->_comp);
+    std::sort(_chunk.get(), _chunk.get() + curr_size, _comp);
 
     std::fstream temp(TempDirectory::dir_name +
                     std::to_string(_temp_files.size()), IOS_FLAG);
@@ -74,18 +83,22 @@ void Sorter<Cmp>::Worker::merge_temp_files() {
         std::merge(
             inp_iter{left},  inp_iter{},
             inp_iter{right}, inp_iter{},
-            out_iter{temp, " "}, _ps->_comp
+            out_iter{temp, " "}, _comp
         );
         temp.seekp(0);
         _temp_files.emplace(std::move(temp));
     }
     auto [left, right] = front_files();
 
+    std::fstream merged(TempDirectory::dir_name +
+                     "__merged", IOS_FLAG);
     std::merge(
         inp_iter{left},  inp_iter{},
         inp_iter{right}, inp_iter{},
-        out_iter{_ps->_out, " "}, _ps->_comp
+        out_iter{merged, " "}, _comp
     );
+    merged.seekp(0);
+    _temp_files.emplace(std::move(merged));
 }
 
 template<class Cmp>
@@ -104,7 +117,12 @@ template<class Cmp>
 void Sorter<Cmp>::external_sort() {
     if (is_empty(_inp))
         return;
-    Worker w{this};
+    Worker w{this, _comp};
+    auto&& file = w._f.get();
+    std::copy(
+        inp_iter{file}, inp_iter{},
+        out_iter{_out}
+    );
 }
 
 template<class Cmp>

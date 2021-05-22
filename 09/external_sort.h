@@ -9,6 +9,7 @@
 #include <queue>
 #include <utility>
 #include <iterator>
+#include <future>
 
 #include "extsorterr.h"
 
@@ -27,18 +28,22 @@ class Sorter {
  private:
     class Worker {
      public:
-        explicit Worker(Sorter* s);
+        explicit Worker(Sorter* ps, Compare comp);
         ~Worker();
 
+        std::future<std::fstream> _f;
      private:
+        std::fstream work();
         void sort_to_temp_file(size_t curr_size);
 
         std::pair<std::fstream, std::fstream>
         front_files();
 
         void merge_temp_files();
+
      private:
         Sorter* _ps;
+        const Compare _comp;
         std::unique_ptr<uint64_t[]> _chunk = nullptr;
         std::queue<std::fstream> _temp_files;
         std::thread _thread;
