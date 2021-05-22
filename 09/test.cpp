@@ -1,6 +1,5 @@
 #include <fstream>
 #include <random>
-#include <functional>
 #include <string>
 #include <string_view>
 
@@ -14,17 +13,12 @@ template<typename Compare>
 bool isSorted(const std::string& filename, Compare comp) {
     std::ifstream file(filename);
     if (!file)
-        throw FileError("Cannot open file");
-    uint64_t prev, curr;
-    if (!(file >> prev))
-        return true;
-
-    while (file >> curr) {
-        if (!comp(prev, curr))
-            return false;
-        prev = curr;
-    }
-    return true;
+        throw FileError("Cannot open file " + filename);
+    return std::is_sorted(
+        std::istream_iterator<uint64_t>{file},
+        std::istream_iterator<uint64_t>{},
+        comp
+    );
 }
 
 template<class Compare>
@@ -33,9 +27,6 @@ void doTest(
     const std::string& out_filename,
     Compare comp
 ) {
-    std::ifstream input(inp_filename);
-    std::ofstream output(out_filename);
-
     Sorter sorter{inp_filename, out_filename, comp};
     sorter.external_sort();
     ASSERT(isSorted(out_filename, comp));
@@ -62,37 +53,32 @@ void testSmall() {
     auto create_and_fill = [](const std::string& filename,
                               const std::vector<uint64_t>& values) {
         std::ofstream inp(filename);
-        for (auto&& val : values)
-            inp <<  val << ' ';
+        std::copy_n(values.begin(), values.size(),
+                    std::ostream_iterator<uint64_t>{inp, " "});
     };
     static const std::string inp_filename = "tests/small.txt";
     static const std::string out_filename = "tests/output.txt";
-    {
-        create_and_fill(inp_filename, {0ul});
-        doAllTests(inp_filename, out_filename);
-    }
-    {
-        create_and_fill(inp_filename, {1ul, 1ul, 1ul});
-        doAllTests(inp_filename, out_filename);
-    }
-    {
-        create_and_fill(inp_filename, {0ul, 1ul, 2ul, 3ul});
-        doAllTests(inp_filename, out_filename);
-    }
-    {
-        create_and_fill(inp_filename, {4ul, 3ul, 2ul, 1ul});
+    std::vector<std::vector<uint64_t>> sequences = {
+        {0ul},
+        {1ul, 1ul, 1ul},
+        {0ul, 1ul, 2ul, 3ul},
+        {4ul, 3ul, 2ul, 1ul}
+    };
+    for (auto&& seq : sequences) {
+        create_and_fill(inp_filename, seq);
         doAllTests(inp_filename, out_filename);
     }
 }
+
+inline std::random_device rd;
+inline std::mt19937 gen(rd());
+inline std::uniform_int_distribution<uint64_t>
+             distrib(0, std::numeric_limits<uint64_t>::max());
 
 void fill(
     const std::string& filename,
     size_t size_in_bytes
 ) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<uint64_t> distrib(0, std::numeric_limits<uint64_t>::max());
-
     size_t curr_size = 0;
     std::ofstream file(filename);
 
@@ -125,8 +111,6 @@ void testLarge() {
         fill(name, size);
 #endif
         Sorter s{name, out_filename, std::less{}};
-        std::ifstream inp(name);
-        std::ofstream out(out_filename);
         {
             LOG_DURATION(name);
             s.external_sort();
