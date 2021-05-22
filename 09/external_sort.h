@@ -10,6 +10,7 @@
 #include <utility>
 #include <iterator>
 #include <future>
+#include <mutex>
 
 #include "extsorterr.h"
 
@@ -22,26 +23,30 @@ class Sorter {
         static inline const std::string dir_name = "__temp/";
 
         TempDirectory();
+#ifndef DEBUG
         ~TempDirectory();
+#endif
     };
 
  private:
     class Worker {
      public:
-        explicit Worker(Sorter* ps, Compare comp);
+        explicit Worker(unsigned id, Sorter* ps, Compare comp);
         ~Worker();
 
         std::future<std::fstream> _f;
      private:
         std::fstream work();
+
         void sort_to_temp_file(size_t curr_size);
+        void merge_temp_files();
 
         std::pair<std::fstream, std::fstream>
         front_files();
 
-        void merge_temp_files();
-
+        std::string temp_filename() const;
      private:
+        unsigned _worker_id;
         Sorter* _ps;
         const Compare _comp;
         std::unique_ptr<uint64_t[]> _chunk = nullptr;
@@ -58,8 +63,7 @@ class Sorter {
  private:
     static constexpr unsigned POOL_SIZE = 2u;
     static constexpr unsigned THREAD_MEM = MEMORY_BOUNDARY / POOL_SIZE;
-
-    static constexpr unsigned CHUNK_SIZE = MEMORY_BOUNDARY / sizeof(uint64_t);
+    static constexpr unsigned CHUNK_SIZE = THREAD_MEM / sizeof(uint64_t);
 
  public:
     explicit Sorter(
@@ -74,6 +78,7 @@ class Sorter {
 
  private:
     std::ifstream _inp;
+    std::mutex _input_mutex;
     std::ofstream _out;
     const Compare _comp;
     TempDirectory temp;

@@ -10,15 +10,33 @@
 namespace {
 
 template<typename Compare>
-bool isSorted(const std::string& filename, Compare comp) {
-    std::ifstream file(filename);
-    if (!file)
-        throw FileError("Cannot open file " + filename);
-    return std::is_sorted(
-        std::istream_iterator<uint64_t>{file},
+std::vector<uint64_t>
+correct_answer(std::ifstream& inp, Compare comp) {
+    std::vector<uint64_t> answer{
+        std::istream_iterator<uint64_t>{inp},
         std::istream_iterator<uint64_t>{},
-        comp
-    );
+    };
+    std::sort(answer.begin(), answer.end(), comp);
+    return answer;
+}
+
+std::vector<uint64_t>
+my_answer(std::ifstream& out) {
+    return {
+        std::istream_iterator<uint64_t>{out},
+        std::istream_iterator<uint64_t>{},
+    };
+}
+
+template<typename Compare>
+void isCorrectlySorted(
+    const std::string& inp_filename,
+    const std::string& out_filename, Compare comp) {
+    std::ifstream inp(inp_filename);
+    std::ifstream out(out_filename);
+    if (!inp || !out)
+        throw FileError("Cannot open file");
+    ASSERT_EQUAL(correct_answer(inp, comp), my_answer(out));
 }
 
 template<class Compare>
@@ -29,7 +47,7 @@ void doTest(
 ) {
     Sorter sorter{inp_filename, out_filename, comp};
     sorter.external_sort();
-    ASSERT(isSorted(out_filename, comp));
+    isCorrectlySorted(inp_filename, out_filename, comp);
 }
 
 void doAllTests(
@@ -69,6 +87,8 @@ void testSmall() {
         doAllTests(inp_filename, out_filename);
     }
 }
+
+#if 1
 
 inline std::random_device rd;
 inline std::mt19937 gen(rd());
@@ -118,6 +138,8 @@ void testLarge() {
         doAllTests(name, out_filename);
     }
 }
+
+#endif
 
 }  // namespace
 
