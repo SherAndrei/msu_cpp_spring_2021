@@ -2,7 +2,7 @@
 #define EXTERNAL_SORT_TCC
 
 #include <algorithm>
-#include <future>
+#include <filesystem>
 
 #include "external_sort.h"
 
@@ -10,12 +10,12 @@ template<class Cmp>
 Sorter<Cmp>::TempDirectory::TempDirectory() {
     std::filesystem::create_directory(dir_name);
 }
-#ifndef DEBUG
+
 template<class Cmp>
 Sorter<Cmp>::TempDirectory::~TempDirectory() {
     std::filesystem::remove_all(dir_name);
 }
-#endif
+
 template<class Cmp>
 Sorter<Cmp>::Worker::Worker(unsigned id, Sorter* s, Cmp comp)
     : _worker_id(id), _ps(s), _comp(comp) {
@@ -57,7 +57,7 @@ std::fstream Sorter<Cmp>::Worker::work() {
 }
 
 template<class Cmp>
-Sorter<Cmp>::Worker::~Worker() {
+Sorter<Cmp>::Worker::~Worker() noexcept {
     _thread.join();
 }
 
@@ -103,7 +103,7 @@ void Sorter<Cmp>::Worker::merge_temp_files() {
 
 template<class Cmp>
 std::pair<std::fstream, std::fstream>
-Sorter<Cmp>::Worker::front_files() {
+Sorter<Cmp>::Worker::front_files() noexcept {
     auto left  = std::move(_temp_files.front());
     _temp_files.pop();
     auto right = std::move(_temp_files.front());
@@ -150,7 +150,7 @@ void Sorter<Cmp>::external_sort() {
 }
 
 template<class Cmp>
-bool Sorter<Cmp>::is_empty(std::ifstream& inp) const {
+bool Sorter<Cmp>::is_empty(std::ifstream& inp) const noexcept {
     return inp.peek() == std::ifstream::traits_type::eof();
 }
 
