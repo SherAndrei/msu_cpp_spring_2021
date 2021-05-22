@@ -36,8 +36,8 @@ void doTest(
     std::ifstream input(inp_filename);
     std::ofstream output(out_filename);
 
-    Sorter sorter(comp);
-    sorter.external_sort(input, output);
+    Sorter sorter{inp_filename, out_filename, comp};
+    sorter.external_sort();
     ASSERT(isSorted(out_filename, comp));
 }
 
@@ -100,33 +100,36 @@ void fill(
         std::string num = std::to_string(distrib(gen));
         std::string_view num_view(num);
         while (!num_view.empty()) {
+            if (++curr_size == size_in_bytes) return;
             file << num_view[0];
             num_view.remove_prefix(1);
-            if (curr_size++ == size_in_bytes) return;
         }
+        if (++curr_size == size_in_bytes) return;
         file << ' ';
-        if (curr_size++ == size_in_bytes) return;
     }
 }
 
 void testLarge() {
     static const std::string out_filename = "tests/output.txt";
     std::map<size_t, std::string> bytes_to_name = {
+        {512, "tests/512B.txt"},
+        {1024, "tests/1KB.txt"},
+        {4194304, "tests/4MB.txt"},
         {8388608, "tests/8MB.txt"},
+        {16777216, "tests/16MB.txt"},
         {33554432, "tests/32MB.txt"},
-        {67108864, "tests/64MB.txt"},
     };
 
     for (auto&& [size, name] : bytes_to_name) {
-#if 0
+#if 1
         fill(name, size);
 #endif
-        Sorter s{std::less{}};
+        Sorter s{name, out_filename, std::less{}};
         std::ifstream inp(name);
         std::ofstream out(out_filename);
         {
             LOG_DURATION(name);
-            s.external_sort(inp, out);
+            s.external_sort();
         }
         doAllTests(name, out_filename);
     }
