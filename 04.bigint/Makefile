@@ -9,7 +9,7 @@ CFLAGS :=  -std=c++17 -W  -Wall      -Werror         -pedantic \
 LDFLAGS := -fsanitize=address
 
 UTILS_DIR = ./../utils/
-SVECTOR_DIR = ./../07/
+SVECTOR_DIR = ./../07.vector/
 PROJECT_NAME = bigint
 
 all: test
