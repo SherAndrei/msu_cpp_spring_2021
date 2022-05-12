@@ -35,8 +35,8 @@ class BigInt final {
     BigInt& operator++();
     BigInt& operator--();
 
-    BigInt operator++(int) const;
-    BigInt operator--(int) const;
+    BigInt operator++(int);
+    BigInt operator--(int);
 
     BigInt& operator+=(const BigInt&);
     BigInt& operator-=(const BigInt&);

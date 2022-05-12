@@ -138,8 +138,16 @@ BigInt BigInt::operator-() const {
 BigInt& BigInt::operator++() { return *this += 1; }
 BigInt& BigInt::operator--() { return *this -= 1; }
 
-BigInt BigInt::operator++(int) const { return *this + 1; }
-BigInt BigInt::operator--(int) const { return *this - 1; }
+BigInt BigInt::operator++(int) {
+    BigInt temp{ *this };
+    *this += 1;
+    return temp;
+}
+BigInt BigInt::operator--(int) {
+    BigInt temp{ *this };
+    *this -= 1;
+    return temp;
+}
 
 BigInt& BigInt::operator+=(const BigInt& rhs) {
     if (negative_ != rhs.negative_)
